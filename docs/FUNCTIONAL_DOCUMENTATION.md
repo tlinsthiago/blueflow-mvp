@@ -1,207 +1,164 @@
 # Documentação Funcional
 
-## Visão Geral do Projeto
-O projeto `BlueFlow Gestão Hidráulica` é uma aplicação web responsiva para gestão operacional de serviços de manutenção hidráulica em condomínios. O sistema foi concebido inicialmente como um MVP sem backend, utilizando `localStorage` para persistência local, com foco em navegação funcional, validação de fluxos de negócio e apresentação comercial do produto.
+## Visão Geral
+`BlueFlow Gestão Hidráulica` é uma aplicação web para gestão operacional, técnica e contratual de serviços de manutenção hidráulica em condomínios.
 
-O sistema centraliza a operação de:
-- cadastro de condomínios;
-- cadastro de técnicos;
-- planejamento e execução de visitas técnicas;
-- checklists hidráulicos;
-- geração de relatórios;
-- simulação de notificações;
-- gestão contratual por condomínio;
-- configuração cadastral da empresa contratada.
+O produto nasceu como um MVP frontend-only, com dados em `localStorage`, para validar navegação, formulários, relatórios e contratos. A arquitetura atual já evoluiu para uma V1 fullstack parcial, com frontend React, backend Fastify, autenticação JWT, RBAC e persistência PostgreSQL para Condomínios e Técnicos.
+
+## Estado Atual do Produto
+### Implementado
+- Landing page institucional.
+- Login real com e-mail e senha via API.
+- Bootstrap de sessão com token JWT.
+- Controle de acesso por perfil.
+- Layout autenticado com menu filtrado por permissão.
+- Gestão de Condomínios integrada ao backend.
+- Gestão de Técnicos integrada ao backend.
+- Páginas existentes para Painel, Visitas, Relatórios, Contratos e Empresa.
+- Componentes reutilizáveis para filtros, cards, modais, ações, upload local e prévias.
+
+### Parcial ou Ainda Não Integrado ao Backend
+- Painel ainda depende do cache frontend e dos módulos já carregados.
+- Visitas ainda não persistem no banco.
+- Relatórios ainda não persistem no banco.
+- Contratos ainda não persistem no banco.
+- Empresa/Configuração da empresa ainda não persiste no banco.
+- Uploads ainda não foram migrados para storage externo.
+- Geração de PDF real ainda não foi implementada.
+- Envio real de e-mail/WhatsApp ainda não foi implementado.
 
 ## Contexto de Negócio
-Empresas que prestam manutenção hidráulica para condomínios precisam controlar:
-- a carteira de clientes;
-- a recorrência das visitas preventivas;
-- as evidências técnicas das inspeções;
-- os responsáveis presentes em cada atendimento;
-- os contratos ativos e vencidos;
-- a emissão de documentos formais para relacionamento comercial e jurídico.
+O sistema atende empresas que prestam manutenção hidráulica para condomínios, centralizando:
+- carteira de condomínios;
+- equipe técnica;
+- visitas técnicas;
+- checklists hidráulicos;
+- relatórios;
+- contratos;
+- dados institucionais da empresa contratada.
 
-O projeto atende esse contexto ao organizar o ciclo completo entre contrato, visita, checklist, relatório e documentação assinada.
+O contexto inicial é a operação da empresa **F TEC AUTOMAÇÃO**, contratada para prestação de serviços técnicos em condomínios.
 
-## Contexto da Empresa
-O sistema está modelado para a empresa:
-- **Nome:** F TEC AUTOMAÇÃO
-- **Papel no sistema:** empresa contratada para prestação de serviços técnicos em condomínios
+## Perfis e Permissões
+Os perfis internos atuais são:
 
-Os dados da empresa são utilizados em:
-- prévia contratual;
-- impressão do contrato;
-- exportação de documento contratual;
-- identificação institucional nas rotinas futuras do sistema.
+### admin
+- Acesso total.
+- Pode visualizar, criar, editar e excluir Condomínios e Técnicos.
+- Pode acessar Contratos e Empresa no frontend.
 
-## Objetivos Principais
-- Estruturar a operação da empresa em um único sistema.
-- Garantir controle sobre visitas técnicas mensais e serviços emergenciais.
-- Reduzir perda de informação entre atendimento de campo e documentação administrativa.
-- Permitir geração rápida de relatórios e contratos.
-- Preparar o sistema para futura evolução com backend, autenticação, banco de dados e portal do cliente.
+### manager
+- Acesso total operacional.
+- Pode visualizar, criar, editar e excluir Condomínios e Técnicos.
+- Pode acessar Contratos e Empresa no frontend.
 
-## Perfis de Usuário
-### Administrador Operacional
-Responsável por cadastrar condomínios, técnicos, contratos e acompanhar os indicadores do painel.
+### collaborator
+- Pode visualizar módulos operacionais permitidos.
+- Pode visualizar listas de Condomínios e Técnicos.
+- Não pode criar, editar ou excluir Condomínios e Técnicos.
+- Não vê Contratos nem Empresa no menu.
+- Não deve acessar endpoints futuros de Contratos e Empresa.
 
-### Coordenador Técnico
-Responsável por distribuir visitas, acompanhar pendências, revisar checklists e validar relatórios.
-
-### Técnico de Campo
-Responsável por executar visitas, preencher checklist, anexar fotos e registrar o aceite do responsável no local.
-
-### Comercial / Administrativo
-Responsável por manter os contratos, gerar documentos, enviar contratos e armazenar versões assinadas.
-
-### Cliente Futuro
-Perfil ainda não implementado, mas considerado no roadmap para portal do condomínio.
+## Fluxo de Autenticação
+1. Usuário acessa `/login`.
+2. Frontend envia credenciais para `POST /auth/login`.
+3. Backend valida e retorna token JWT e dados do usuário.
+4. Frontend armazena apenas:
+   - `blueflow-auth-token`;
+   - `blueflow-current-user`.
+5. Ao recarregar a aplicação, o frontend valida a sessão em `GET /auth/me`.
+6. Em caso de token inválido ou expirado, o usuário é deslogado automaticamente.
 
 ## Módulos Funcionais
-- Landing page institucional
-- Login simulado
-- Painel de indicadores
-- Gestão de condomínios
-- Gestão de técnicos
-- Gestão de visitas técnicas
-- Formulário operacional da visita
-- Checklist técnico
-- Gestão de relatórios
-- Gestão de contratos
-- Configuração da empresa contratada
+### Condomínios
+Implementado com persistência real via API.
 
-## Fluxos Principais
-### Fluxo de Cadastro de Condomínio
-1. Usuário acessa a tela de condomínios.
-2. Preenche dados cadastrais, jurídicos e de contato.
-3. Salva o condomínio.
-4. O registro passa a participar dos filtros, indicadores e vínculos contratuais e operacionais.
+Funcionalidades:
+- listagem;
+- busca client-side sobre dados carregados;
+- cadastro para `admin` e `manager`;
+- edição para `admin` e `manager`;
+- exclusão para `admin` e `manager`;
+- bloqueio de exclusão no backend quando há visitas ou contratos vinculados.
 
-### Fluxo de Cadastro de Técnico
-1. Usuário acessa a tela de técnicos.
-2. Cadastra nome, telefone, cargo/função, status e observações.
-3. O técnico passa a poder ser vinculado às visitas.
+### Técnicos
+Implementado com persistência real via API.
 
-### Fluxo de Visita Técnica
-1. Selecionar condomínio.
-2. Selecionar técnico.
-3. Informar tipo de serviço e status da visita.
-4. Registrar responsável presente no condomínio.
-5. Preencher checklist técnico.
-6. Registrar ações realizadas, problemas fora da alçada e melhorias sugeridas.
-7. Anexar fotos.
-8. Marcar aceite digital do termo de responsabilidade.
-9. Salvar visita.
-10. Se a visita estiver concluída, o sistema pode gerar relatório.
+Funcionalidades:
+- listagem;
+- busca client-side sobre dados carregados;
+- filtro por status;
+- cadastro para `admin` e `manager`;
+- edição para `admin` e `manager`;
+- exclusão para `admin` e `manager`;
+- bloqueio de exclusão no backend quando há visitas vinculadas.
 
-### Fluxo de Contrato
-1. Selecionar condomínio.
-2. Informar número do contrato, tipo de serviço e parâmetros comerciais.
-3. Definir prazo, SLAs, foro e observações.
-4. Salvar contrato.
-5. Visualizar prévia preenchida.
-6. Imprimir ou exportar o contrato.
-7. Fazer upload da versão assinada.
-8. Acompanhar status contratual.
+### Visitas
+Tela e fluxo de formulário existem no frontend, mas a persistência real no backend ainda não foi integrada.
 
-### Fluxo de Relatório
-1. Relatórios são vinculados a visitas.
-2. Usuário filtra relatórios por condomínio, técnico, serviço, status e datas.
-3. A listagem mostra apenas resumo.
-4. Ao abrir o relatório completo, o sistema exibe todos os dados da visita consolidada.
-
-## Funcionalidades Detalhadas
-### Painel
-- métricas de condomínios e visitas;
-- status mensal por condomínio;
-- indicadores rápidos para apresentação.
-
-### Gestão de Condomínios
-- CRUD completo;
-- busca por nome, endereço ou responsável;
-- filtro por status mensal;
-- detalhes do condomínio;
-- seção interna de contratos vinculados.
-
-### Gestão de Técnicos
-- CRUD completo;
-- busca e filtro por status;
-- manutenção de disponibilidade operacional.
-
-### Gestão de Visitas Técnicas
-- CRUD completo;
-- filtros por condomínio, técnico, status, tipo de serviço e datas;
-- geração de relatório;
-- visualização detalhada em modal.
-
-### Checklist Técnico
-- inspeção por equipamento;
-- status por item;
-- observações por item;
-- campos livres para ações, problemas e melhorias.
+Planejado:
+- CRUD via API;
+- vínculo com Condomínio e Técnico;
+- checklist persistido;
+- fotos via storage externo;
+- geração de relatório pelo backend.
 
 ### Relatórios
-- resumo em cards;
-- filtros avançados;
-- ordenação;
-- carregamento progressivo;
-- visualização completa.
+Tela e componentes existem no frontend, mas a persistência real no backend ainda não foi integrada.
+
+Planejado:
+- listagem server-side;
+- detalhamento a partir de visita;
+- geração de PDF real;
+- versionamento e download.
 
 ### Contratos
-- múltiplos contratos por condomínio;
-- status contratual;
-- prévia funcional;
-- impressão;
-- exportação em HTML;
-- upload do contrato assinado.
+Tela e prévia de contrato existem no frontend, mas a persistência real no backend ainda não foi integrada.
 
-### Configuração da Empresa
-- dados institucionais usados na composição contratual.
+Planejado:
+- CRUD via API;
+- restrição a `admin` e `manager`;
+- geração server-side de documento/PDF;
+- upload de contrato assinado via Vercel Blob ou storage equivalente.
 
-## Escopo Atual do MVP
-### Incluído
-- Frontend navegável completo
-- Persistência via `localStorage`
-- CRUDs principais
-- Rotina operacional de visita
-- Gestão contratual inicial
-- Simulação de relatórios e impressão
+### Empresa
+Tela existe no frontend, mas a persistência real no backend ainda não foi integrada.
 
-### Não incluído
-- Autenticação real
-- Controle de permissões
-- Banco de dados
-- API
-- Versionamento documental
-- Assinatura eletrônica integrada
-- Envio real de WhatsApp/e-mail
+Planejado:
+- leitura e atualização via API;
+- restrição a `admin` e `manager`.
 
 ## Regras de Negócio
-- Cada condomínio deve possuir acompanhamento mensal de visita preventiva.
-- Um condomínio pode possuir múltiplos contratos.
-- Um contrato pertence a um condomínio.
-- Uma visita pertence a um condomínio e a um técnico.
-- Um relatório pertence a uma visita.
-- A exclusão de condomínio é bloqueada se houver visitas ou contratos vinculados.
-- A exclusão de técnico é bloqueada se houver visitas vinculadas.
-- Ao concluir uma visita, o sistema pode gerar relatório.
-- O contrato assinado é armazenado dentro do próprio registro do contrato.
+- Um Condomínio pode possuir muitos Contratos.
+- Um Condomínio pode possuir muitas Visitas.
+- Um Técnico pode possuir muitas Visitas.
+- Uma Visita pode gerar um Relatório.
+- Uma Visita possui itens de checklist.
+- Uma Visita pode possuir fotos.
+- Um Contrato pertence a um Condomínio.
+- Não excluir Condomínio com Visitas ou Contratos vinculados.
+- Não excluir Técnico com Visitas vinculadas.
+- `collaborator` não pode criar, editar ou excluir Condomínios e Técnicos.
+- `collaborator` não deve acessar Contratos nem Empresa.
 
-## Definições de Status
-### Status da Visita
+## Status de Negócio
+### Técnico
+- `Ativo`
+- `Inativo`
+
+### Visita
 - `Agendada`
 - `Em andamento`
 - `Concluída`
 - `Pendente`
 - `Cancelada`
 
-### Status do Checklist
+### Checklist
 - `Normal`
 - `Atenção`
 - `Crítico`
 
-### Status do Contrato
+### Contrato
 - `Rascunho`
 - `Gerado`
 - `Enviado`
@@ -209,54 +166,14 @@ Perfil ainda não implementado, mas considerado no roadmap para portal do condom
 - `Vencido`
 - `Cancelado`
 
-### Status do Técnico
-- `Ativo`
-- `Inativo`
+## Histórico do MVP
+O MVP frontend-only foi importante para validar:
+- navegação geral;
+- estrutura visual;
+- formulários principais;
+- fluxo operacional de visitas;
+- prévia e impressão HTML de contratos;
+- componentes reutilizáveis;
+- regras iniciais de vínculo entre entidades.
 
-### Status Mensal do Condomínio
-- `Concluído`: existe visita concluída no mês atual.
-- `Pendente`: não existe visita concluída no mês atual.
-
-## Workflow de Visita
-1. Cadastro ou seleção do condomínio.
-2. Seleção do técnico responsável.
-3. Definição do tipo de serviço.
-4. Registro da data e status da visita.
-5. Registro do responsável presente no local.
-6. Aceite digital do termo.
-7. Preenchimento do checklist.
-8. Registro textual de ações, problemas e melhorias.
-9. Inclusão de fotos.
-10. Geração de relatório.
-
-## Workflow de Contrato
-1. Cadastro dos dados do condomínio.
-2. Configuração dos dados da empresa.
-3. Criação do contrato.
-4. Geração da prévia.
-5. Impressão ou exportação.
-6. Envio externo para assinatura.
-7. Upload do arquivo assinado.
-8. Acompanhamento do status até vencimento ou cancelamento.
-
-## Workflow de Checklist
-1. O checklist é inicializado automaticamente para os equipamentos padrão.
-2. O técnico define um status para cada equipamento.
-3. O técnico adiciona observações por item.
-4. O sistema consolida o status geral com base na criticidade mais alta encontrada.
-
-## Workflow de Relatório
-1. O relatório nasce a partir da visita.
-2. O resumo mostra apenas dados essenciais.
-3. O relatório completo compila condomínio, técnico, responsável, checklist, fotos, aceite e textos operacionais.
-
-## Ideias de Roadmap Futuro
-- autenticação real;
-- portal do cliente;
-- exportação PDF verdadeira;
-- assinatura eletrônica integrada;
-- envio automático por e-mail e WhatsApp;
-- agenda operacional;
-- indicadores financeiros;
-- multitenancy para operação SaaS;
-- aplicativo mobile/PWA para técnicos.
+Esse histórico deve ser preservado, mas a estratégia principal atual é backend + PostgreSQL.

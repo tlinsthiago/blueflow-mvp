@@ -2,6 +2,7 @@ import { Bell, Building2, ClipboardList, FileCog, FileText, LayoutDashboard, Log
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { ToastStack } from '../components/ToastStack';
+import { canAccessCompany, canAccessContracts } from '../auth/permissions';
 
 const navItems = [
   { to: '/app/dashboard', label: 'Painel', icon: LayoutDashboard },
@@ -9,8 +10,8 @@ const navItems = [
   { to: '/app/technicians', label: 'Técnicos', icon: Wrench },
   { to: '/app/visits', label: 'Visitas', icon: ClipboardList },
   { to: '/app/reports', label: 'Relatórios', icon: FileText },
-  { to: '/app/contracts', label: 'Contratos', icon: FileCog },
-  { to: '/app/company', label: 'Empresa', icon: Settings2 },
+  { to: '/app/contracts', label: 'Contratos', icon: FileCog, canAccess: canAccessContracts },
+  { to: '/app/company', label: 'Empresa', icon: Settings2, canAccess: canAccessCompany },
 ];
 
 function NavItem({ item, mobile = false }) {
@@ -35,8 +36,9 @@ function NavItem({ item, mobile = false }) {
 }
 
 export function AppShell() {
-  const { logout, notifications, dismissNotification } = useAppContext();
+  const { currentUser, logout, notifications, dismissNotification } = useAppContext();
   const navigate = useNavigate();
+  const visibleNavItems = navItems.filter((item) => !item.canAccess || item.canAccess(currentUser));
 
   function handleLogout() {
     logout();
@@ -56,7 +58,7 @@ export function AppShell() {
             </p>
           </div>
           <nav className="mt-6 space-y-2">
-            {navItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <NavItem key={item.to} item={item} />
             ))}
           </nav>
@@ -87,7 +89,7 @@ export function AppShell() {
 
       <nav className="fixed bottom-3 left-3 right-3 z-20 rounded-[2rem] border border-slate-200 bg-white p-2 shadow-soft lg:hidden">
         <div className="flex items-center gap-2">
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <NavItem key={item.to} item={item} mobile />
           ))}
         </div>

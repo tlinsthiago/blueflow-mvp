@@ -11,10 +11,28 @@ import { VisitFormPage } from './pages/VisitFormPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { ContractsPage } from './pages/ContractsPage';
 import { CompanySettingsPage } from './pages/CompanySettingsPage';
+import { fullAccessRoles, hasAnyRole } from './auth/permissions';
 
-function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAppContext();
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+function ProtectedRoute({ children, allowedRoles }) {
+  const { authLoading, currentUser, isAuthenticated } = useAppContext();
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 text-sm font-medium text-slate-600">
+        Validando sessão...
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!hasAnyRole(currentUser, allowedRoles)) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
+
+  return children;
 }
 
 function AppRoutes() {
@@ -38,8 +56,22 @@ function AppRoutes() {
         <Route path="visits/new" element={<VisitFormPage />} />
         <Route path="visits/:visitId" element={<VisitFormPage />} />
         <Route path="reports" element={<ReportsPage />} />
-        <Route path="contracts" element={<ContractsPage />} />
-        <Route path="company" element={<CompanySettingsPage />} />
+        <Route
+          path="contracts"
+          element={
+            <ProtectedRoute allowedRoles={fullAccessRoles}>
+              <ContractsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="company"
+          element={
+            <ProtectedRoute allowedRoles={fullAccessRoles}>
+              <CompanySettingsPage />
+            </ProtectedRoute>
+          }
+        />
       </Route>
     </Routes>
   );

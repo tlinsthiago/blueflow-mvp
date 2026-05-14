@@ -1,38 +1,32 @@
 # Decisions Log
 
 ## Objetivo
-Este arquivo registra decisões arquiteturais, funcionais e estruturais relevantes do projeto, em formato leve inspirado em ADR (Architecture Decision Record).
+Este arquivo registra decisões arquiteturais, funcionais e estruturais relevantes do projeto, em formato leve inspirado em ADR.
 
-O objetivo é:
-- preservar contexto para futuras evoluções;
-- facilitar continuidade por novos desenvolvedores;
-- reduzir perda de entendimento em conversas futuras com IA;
-- justificar escolhas técnicas e de produto já adotadas.
+As decisões antigas do MVP são mantidas como histórico. As decisões mais recentes refletem a V1 fullstack parcial atual.
 
 ---
 
 ## DEC-001: Construção inicial como MVP frontend-first
 ### Status
-Aceita
+Aceita como decisão histórica
 
 ### Contexto
-O projeto precisava validar rapidamente o fluxo operacional da empresa antes de investir em backend, autenticação real e banco de dados.
+O produto precisava validar rapidamente fluxo operacional, navegação e apresentação comercial antes do investimento em backend.
 
 ### Decisão
-Construir a primeira versão como aplicação React com persistência local via `localStorage`.
+Construir a primeira versão como SPA React com persistência em `localStorage`.
 
 ### Consequências
 **Positivas**
-- acelera prototipação;
-- reduz custo inicial;
-- facilita demonstração comercial;
-- permite validação rápida dos fluxos.
+- acelerou prototipação;
+- reduziu custo inicial;
+- permitiu validar telas, regras e componentes.
 
 **Negativas**
-- não escala para produção real;
-- não suporta múltiplos usuários;
-- não oferece segurança adequada;
-- dificulta auditoria e concorrência de dados.
+- não era adequada para produção real;
+- não suportava múltiplos usuários;
+- não oferecia autenticação, autorização, auditoria ou concorrência de dados.
 
 ---
 
@@ -40,191 +34,150 @@ Construir a primeira versão como aplicação React com persistência local via 
 ### Status
 Aceita
 
-### Contexto
-Era necessário montar rapidamente uma SPA responsiva com boa experiência visual e baixo atrito de desenvolvimento.
-
 ### Decisão
 Usar React como base da interface, Vite como bundler/dev server e Tailwind CSS para composição visual.
 
 ### Consequências
 **Positivas**
-- ótima velocidade de desenvolvimento;
+- boa velocidade de desenvolvimento;
 - build rápido;
-- facilidade de modularização;
-- styling consistente com componentes reutilizáveis.
+- componentes reutilizáveis;
+- interface responsiva com baixo atrito.
 
 **Negativas**
-- o uso excessivo de classes utilitárias pode aumentar o custo de manutenção visual se não houver disciplina.
+- exige disciplina para evitar excesso de classes utilitárias difíceis de manter.
 
 ---
 
-## DEC-003: Variáveis internas em inglês e UI em português
+## DEC-003: Código interno em inglês e UI em português
 ### Status
 Aceita
 
-### Contexto
-O produto é voltado ao mercado brasileiro, mas o código precisa manter padrão técnico adequado para manutenção futura.
-
 ### Decisão
-Manter nomes de variáveis, funções e estruturas internas em inglês, enquanto toda a interface permanece em português do Brasil.
+Manter variáveis, funções, componentes e nomes internos em inglês, enquanto a interface e a documentação permanecem em português do Brasil.
 
 ### Consequências
 **Positivas**
-- mantém legibilidade técnica;
-- facilita integração futura com backend e convenções internacionais;
-- preserva UX local para o cliente final.
+- melhora legibilidade técnica;
+- preserva UX local;
+- facilita integração futura com padrões de backend.
 
 **Negativas**
-- exige disciplina na separação entre domínio visível e nomenclatura interna.
+- exige disciplina para separar nomenclatura interna de labels exibidos ao usuário.
 
 ---
 
-## DEC-004: Estado global centralizado em AppContext
+## DEC-004: AppContext como estado global inicial
 ### Status
-Aceita
+Aceita como decisão histórica, revisada na V1
 
-### Contexto
-O sistema precisava compartilhar dados entre múltiplas telas com baixo custo de implementação.
+### Decisão original
+Centralizar estado, CRUDs, normalização e toasts em `AppContext`.
 
-### Decisão
-Centralizar leitura, normalização, CRUD e toasts em `AppContext`.
+### Revisão atual
+Na V1, `AppContext` não é mais persistência principal. Ele atua como fachada de sessão, permissões, notificações e cache em memória, enquanto os dados migrados passam a vir do backend.
 
 ### Consequências
 **Positivas**
-- implementação simples;
-- reduz duplicação;
-- facilita persistência única no `localStorage`.
+- preservou continuidade das páginas existentes;
+- permitiu migração incremental.
 
 **Negativas**
-- tende a crescer demais com a expansão do sistema;
-- pode gerar re-renderizações mais amplas;
-- não é a melhor solução para escala avançada.
-
-### Observação futura
-Migrar gradualmente para arquitetura com API + cache de dados usando React Query ou equivalente.
+- ainda concentra compatibilidade temporária de módulos não migrados;
+- pode ser substituído parcialmente por React Query ou solução equivalente no futuro.
 
 ---
 
-## DEC-005: Uso de componentes reutilizáveis para filtros, ações e modais
+## DEC-005: Componentes reutilizáveis para filtros, ações e modais
 ### Status
 Aceita
 
-### Contexto
-As telas de listagem começaram a repetir padrões de filtros, ações e confirmações.
-
 ### Decisão
-Criar componentes reutilizáveis como:
-- `FilterPanel`
-- `ActionButtons`
-- `ConfirmationModal`
-- `ModalShell`
-- `EmptyState`
-- `StatusBadge`
+Criar e preservar componentes reutilizáveis como:
+- `FilterPanel`;
+- `ActionButtons`;
+- `ConfirmationModal`;
+- `ModalShell`;
+- `EmptyState`;
+- `StatusBadge`;
+- `SectionCard`;
+- `PageHeader`.
 
 ### Consequências
 **Positivas**
 - consistência visual;
 - menor duplicação;
-- manutenção facilitada;
-- escalabilidade melhor da interface.
+- manutenção mais simples.
 
 **Negativas**
-- mudanças estruturais nesses componentes impactam várias telas ao mesmo tempo.
+- mudanças estruturais nesses componentes impactam várias telas.
 
 ---
 
-## DEC-006: Relatórios resumidos com filtros e abertura detalhada
+## DEC-006: Relatórios resumidos com abertura detalhada
 ### Status
 Aceita
 
-### Contexto
-A listagem direta de todos os relatórios completos não escalava bem com muitos condomínios e visitas.
-
 ### Decisão
-Exibir relatórios em cards-resumo com filtros, ordenação e carregamento progressivo, abrindo o relatório completo sob demanda.
+Exibir relatórios em formato resumido, com filtros e abertura detalhada sob demanda.
 
 ### Consequências
 **Positivas**
-- melhora escalabilidade visual;
-- reduz poluição da interface;
-- aproxima o comportamento esperado de sistemas reais.
+- reduz poluição visual;
+- aproxima a experiência de sistemas operacionais reais.
 
 **Negativas**
-- aumenta a necessidade de componentes e estados auxiliares para detalhe.
+- aumenta a necessidade de estados auxiliares e endpoints específicos no backend.
 
 ---
 
-## DEC-007: Contratos como entidade independente vinculada ao condomínio
+## DEC-007: Contratos como entidade independente
 ### Status
 Aceita
 
-### Contexto
-O sistema precisava evoluir de operação técnica para também suportar governança comercial e documental.
-
 ### Decisão
-Criar a entidade `contracts`, separada de visitas e relatórios, vinculada ao condomínio e com suporte a múltiplos contratos por cliente.
+Modelar `Contract` como entidade própria, vinculada a `Condominium`.
 
 ### Consequências
 **Positivas**
 - modelagem mais correta do domínio;
-- facilita gestão de vigência, SLA e valores;
-- prepara o sistema para ciclo comercial completo.
+- prepara gestão comercial e documental.
 
 **Negativas**
-- amplia a complexidade do estado e da UI;
-- exige novos fluxos de detalhe e prévia.
+- aumenta complexidade de telas, permissões, documentos e uploads.
 
 ---
 
-## DEC-008: Geração de contrato em HTML imprimível
+## DEC-008: Contrato imprimível em HTML no MVP
 ### Status
-Aceita
-
-### Contexto
-Era necessário gerar uma versão imprimível do contrato sem depender ainda de backend ou biblioteca de PDF.
+Aceita como solução temporária
 
 ### Decisão
-Montar a prévia e impressão do contrato em HTML, com layout profissional inspirado no modelo DOCX fornecido.
+Gerar prévia e impressão de contrato em HTML no frontend durante o MVP.
 
 ### Consequências
 **Positivas**
-- solução rápida;
-- funciona no navegador;
-- facilita visualização e exportação inicial.
+- permitiu demonstração rápida;
+- funcionou sem backend ou PDF server-side.
 
 **Negativas**
 - não substitui PDF jurídico definitivo;
-- impressão pode variar entre navegadores;
-- não há controle de versão documental robusto.
+- não oferece versionamento documental robusto.
 
-### Observação futura
-Migrar para geração server-side de PDF com template versionado.
+### Direção atual
+Migrar futuramente para geração server-side com template versionado.
 
 ---
 
-## DEC-009: Upload de arquivos em base64 no estado local
+## DEC-009: Upload base64 no MVP
 ### Status
-Aceita com restrição
+Aceita como decisão histórica, não recomendada para V1
 
-### Contexto
-Era necessário permitir upload de fotos e contratos assinados sem backend.
+### Decisão original
+Armazenar fotos e contratos assinados como base64 no estado local.
 
-### Decisão
-Armazenar os arquivos temporariamente como `data URL/base64` no próprio estado persistido.
-
-### Consequências
-**Positivas**
-- simples de implementar;
-- suficiente para demonstração do MVP.
-
-**Negativas**
-- consome muito espaço;
-- não escala;
-- degrada a persistência no `localStorage`;
-- não é seguro para produção.
-
-### Observação futura
-Substituir por upload real em storage externo com metadados persistidos em banco.
+### Revisão atual
+Uploads ainda não foram implementados na V1. A direção definida é usar Vercel Blob ou storage externo equivalente, com metadados na entidade `File`.
 
 ---
 
@@ -232,75 +185,214 @@ Substituir por upload real em storage externo com metadados persistidos em banco
 ### Status
 Aceita
 
-### Contexto
-Era necessário evitar que exclusões quebrassem coerência mínima dos dados.
-
 ### Decisão
 Bloquear exclusão de:
-- condomínio com visitas ou contratos vinculados;
-- técnico com visitas vinculadas.
+- Condomínio com Visitas ou Contratos vinculados;
+- Técnico com Visitas vinculadas.
 
-### Consequências
-**Positivas**
-- protege integridade lógica do MVP;
-- aproxima o comportamento de sistemas reais.
-
-**Negativas**
-- no futuro pode exigir estratégias mais completas, como arquivamento ou soft delete.
+### Estado atual
+A regra já foi implementada no backend para Condomínios e Técnicos.
 
 ---
 
-## DEC-011: Status do condomínio calculado por visita concluída no mês
+## DEC-011: Status mensal do Condomínio
 ### Status
-Aceita
-
-### Contexto
-Era necessário um indicador simples para saber se o condomínio foi atendido no mês atual.
+Aceita como regra funcional inicial
 
 ### Decisão
-Considerar `Concluído` quando existir pelo menos uma visita com status `Concluída` no mês corrente.
+Considerar `Concluído` quando existir ao menos uma visita `Concluída` no mês atual.
 
-### Consequências
-**Positivas**
-- regra simples e objetiva;
-- útil para painel e carteira.
-
-**Negativas**
-- não considera casos mais complexos, como exigência de múltiplas visitas no mesmo mês.
-
-### Observação futura
-Permitir parametrização por contrato e frequência contratada.
+### Estado atual
+A regra ainda depende da integração futura de Visitas ao backend.
 
 ---
 
-## DEC-012: Documentação persistente dentro de /docs
+## DEC-012: Documentação persistente em `/docs`
 ### Status
 Aceita
 
-### Contexto
-O projeto começou a crescer e havia risco de perda de contexto entre sessões, conversas ou handoffs.
-
 ### Decisão
-Criar a pasta `/docs` como fonte de verdade complementar para contexto funcional, técnico, de dados e roadmap.
+Manter documentação funcional, técnica, roadmap, modelo de dados e decisões dentro de `/docs`.
 
 ### Consequências
 **Positivas**
-- reduz dependência do histórico da conversa;
-- melhora onboarding;
-- facilita continuidade por IA e pessoas.
+- facilita continuidade;
+- reduz dependência do histórico de conversa;
+- orienta futuras IAs e desenvolvedores.
 
 **Negativas**
 - exige atualização contínua para não ficar desatualizada.
 
 ---
 
-## Próximas decisões esperadas
-Os próximos ADRs provavelmente devem registrar:
-- estratégia de autenticação;
-- escolha de banco de dados;
-- escolha de storage de arquivos;
-- estratégia de multiempresa;
-- política de geração de PDF;
-- arquitetura do backend;
-- uso ou não de React Query;
-- política de auditoria e soft delete.
+## DEC-013: Backend em Node.js com Fastify
+### Status
+Aceita
+
+### Decisão
+Criar backend separado em `backend`, usando Node.js, Fastify e API REST JSON.
+
+### Consequências
+**Positivas**
+- separa frontend e backend;
+- permite evolução incremental;
+- combina com o ecossistema Vite/React;
+- prepara deploy em ambiente Node/Vercel.
+
+**Negativas**
+- adiciona uma segunda aplicação no repositório;
+- exige disciplina em contratos de API e permissões.
+
+---
+
+## DEC-014: PostgreSQL Neon com Prisma ORM
+### Status
+Aceita
+
+### Decisão
+Usar PostgreSQL Neon como banco relacional e Prisma como ORM/migrations.
+
+### Consequências
+**Positivas**
+- modelagem relacional adequada ao domínio;
+- migrations versionadas;
+- compatibilidade com estratégia futura SaaS;
+- boa experiência de desenvolvimento.
+
+**Negativas**
+- exige cuidado com datas, tipos financeiros e mapeamento frontend/backend.
+
+---
+
+## DEC-015: Autenticação JWT e perfis
+### Status
+Aceita
+
+### Decisão
+Implementar autenticação com e-mail/senha, hash Argon2 e JWT.
+
+Perfis:
+- `admin`;
+- `manager`;
+- `collaborator`.
+
+### Regras
+- `admin`: acesso total.
+- `manager`: acesso total.
+- `collaborator`: acesso operacional limitado, sem Contratos e Empresa.
+
+### Consequências
+**Positivas**
+- habilita uso real por múltiplos usuários;
+- cria base para auditoria e permissões mais granulares.
+
+**Negativas**
+- armazenamento de JWT em `localStorage` é uma decisão pragmática inicial;
+- estratégia futura pode exigir refresh token/cookie HTTP-only.
+
+---
+
+## DEC-016: Upload futuro em Vercel Blob ou equivalente
+### Status
+Aceita
+
+### Decisão
+Não implementar upload na base inicial. Preparar o modelo `File` para metadados e usar futuramente Vercel Blob ou storage externo equivalente.
+
+### Consequências
+**Positivas**
+- evita misturar autenticação/API inicial com complexidade de arquivos;
+- mantém caminho claro para fotos, contratos assinados e anexos.
+
+**Negativas**
+- módulos que dependem de arquivo ainda não estão prontos para produção.
+
+---
+
+## DEC-017: Frontend V1 com autenticação real e cache de sessão
+### Status
+Aceita
+
+### Decisão
+Migrar o frontend para autenticação real:
+- `POST /auth/login`;
+- `GET /auth/me`.
+
+Persistir no navegador apenas:
+- token JWT;
+- usuário atual.
+
+Transformar `AppContext` em camada de sessão, permissões, notificações e cache frontend.
+
+### Consequências
+**Positivas**
+- remove login simulado;
+- reduz dependência de `localStorage` como banco local;
+- prepara conexão dos CRUDs aos endpoints reais.
+
+**Negativas**
+- frontend passa a depender da API para autenticar e restaurar sessão.
+
+---
+
+## DEC-018: RBAC no frontend e backend
+### Status
+Aceita
+
+### Decisão
+Aplicar RBAC no frontend para rotas/menu e no backend para escrita em rotas de domínio.
+
+### Regras atuais
+- `collaborator` não vê Contratos nem Empresa.
+- `collaborator` não cria, edita nem exclui Condomínios/Técnicos.
+- `admin` e `manager` têm acesso total.
+
+### Consequências
+**Positivas**
+- melhora experiência por perfil;
+- reduz exposição visual indevida;
+- reforça segurança no backend.
+
+**Negativas**
+- permissões futuras podem exigir granularidade maior por módulo/ação.
+
+---
+
+## DEC-019: Integração real de Condomínios e Técnicos
+### Status
+Aceita
+
+### Decisão
+Integrar `CondominiumsPage` e `TechniciansPage` aos endpoints reais de backend.
+
+Endpoints integrados:
+- `GET /condominiums`
+- `POST /condominiums`
+- `PUT /condominiums/:id`
+- `DELETE /condominiums/:id`
+- `GET /technicians`
+- `POST /technicians`
+- `PUT /technicians/:id`
+- `DELETE /technicians/:id`
+
+### Consequências
+**Positivas**
+- inicia persistência operacional real em PostgreSQL;
+- define padrão para migração dos próximos módulos;
+- mantém UI existente com cache em memória.
+
+**Negativas**
+- Visitas, Relatórios, Contratos e Empresa ainda precisam ser migrados;
+- `AppContext` ainda contém compatibilidade temporária.
+
+---
+
+## Decisões Futuras Esperadas
+- Estratégia de refresh token ou sessão mais robusta.
+- Adoção ou não de React Query para server-state.
+- Política de soft delete.
+- Política de auditoria.
+- Estratégia de storage e URL assinada.
+- Estratégia multiempresa/multitenancy.
+- Geração e versionamento de PDF.
+- Observabilidade e logs estruturados.

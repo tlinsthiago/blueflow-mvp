@@ -19,18 +19,33 @@ const initialForm = {
 };
 
 export function TechniciansPage() {
-  const { technicians, visits, createTechnician, updateTechnician, deleteTechnician } = useAppContext();
+  const {
+    technicians,
+    visits,
+    createTechnician,
+    updateTechnician,
+    deleteTechnician,
+    domainLoading,
+    domainErrors,
+    canWriteDomain,
+  } = useAppContext();
   const [filters, setFilters] = useState({ search: '', status: 'Todos' });
   const [form, setForm] = useState(initialForm);
   const [editingId, setEditingId] = useState(null);
   const [detailsItem, setDetailsItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const canWrite = canWriteDomain();
 
   const filteredTechnicians = useMemo(() => {
     const search = filters.search.trim().toLowerCase();
 
     return technicians.filter((tech) => {
-      const matchesSearch = !search || [tech.name, tech.phone].some((value) => value.toLowerCase().includes(search));
+      const matchesSearch =
+        !search ||
+        [tech.name, tech.phone, tech.role]
+          .filter(Boolean)
+          .some((value) => value.toLowerCase().includes(search));
       const matchesStatus = filters.status === 'Todos' || tech.status === filters.status;
       return matchesSearch && matchesStatus;
     });
@@ -41,14 +56,25 @@ export function TechniciansPage() {
     setEditingId(null);
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-    if (editingId) {
-      updateTechnician(editingId, form);
-    } else {
-      createTechnician(form);
+    if (!canWrite) {
+      return;
     }
-    resetForm();
+
+    setIsSubmitting(true);
+    try {
+      if (editingId) {
+        await updateTechnician(editingId, form);
+      } else {
+        await createTechnician(form);
+      }
+      resetForm();
+    } catch {
+      // Toasts are handled by AppContext.
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function handleEdit(item) {
@@ -88,9 +114,22 @@ export function TechniciansPage() {
         </FormField>
       </FilterPanel>
 
+      {domainErrors.technicians ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+          {domainErrors.technicians}
+        </div>
+      ) : null}
+
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <SectionCard title="Equipe técnica" subtitle={`${filteredTechnicians.length} registro(s) encontrado(s).`}>
-          {filteredTechnicians.length ? (
+        <SectionCard
+          title="Equipe técnica"
+          subtitle={domainLoading.technicians ? 'Carregando técnicos do banco de dados...' : `${filteredTechnicians.length} registro(s) encontrado(s).`}
+        >
+          {domainLoading.technicians ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-600">
+              Carregando técnicos...
+            </div>
+          ) : filteredTechnicians.length ? (
             <div className="space-y-4">
               {filteredTechnicians.map((tech) => {
                 const linkedVisits = visits.filter((visit) => visit.technicianId === tech.id).length;
@@ -109,8 +148,12 @@ export function TechniciansPage() {
                       <ActionButtons
                         actions={[
                           { label: 'Ver detalhes', onClick: () => setDetailsItem(tech) },
-                          { label: 'Editar', onClick: () => handleEdit(tech) },
-                          { label: 'Excluir', onClick: () => setDeleteTarget(tech), tone: 'danger' },
+                          ...(canWrite
+                            ? [
+                                { label: 'Editar', onClick: () => handleEdit(tech) },
+                                { label: 'Excluir', onClick: () => setDeleteTarget(tech), tone: 'danger' },
+                              ]
+                            : []),
                         ]}
                       />
                     </div>
@@ -124,16 +167,21 @@ export function TechniciansPage() {
         </SectionCard>
 
         <SectionCard
-          title={editingId ? 'Editar técnico' : 'Cadastrar técnico'}
-          subtitle="Campos adequados ao uso operacional em empresas de manutenção condominial."
+          title={canWrite ? (editingId ? 'Editar técnico' : 'Cadastrar técnico') : 'Permissão de visualização'}
+          subtitle={
+            canWrite
+              ? 'Campos adequados ao uso operacional em empresas de manutenção condominial.'
+              : 'Seu perfil permite consultar técnicos, mas não criar, editar ou excluir registros.'
+          }
           action={
-            editingId ? (
+            editingId && canWrite ? (
               <button type="button" onClick={resetForm} className="text-sm font-semibold text-brand-600">
                 Cancelar edição
               </button>
             ) : null
           }
         >
+          {canWrite ? (
           <form className="space-y-4" onSubmit={handleSubmit}>
             <FormField label="Nome">
               <input
@@ -178,10 +226,19 @@ export function TechniciansPage() {
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
               />
             </FormField>
-            <button type="submit" className="w-full rounded-2xl bg-brand-600 px-4 py-3 font-semibold text-white transition hover:bg-brand-500">
-              {editingId ? 'Salvar alterações' : 'Salvar técnico'}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full rounded-2xl bg-brand-600 px-4 py-3 font-semibold text-white transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isSubmitting ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Salvar técnico'}
             </button>
           </form>
+          ) : (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+              A criação e manutenção de técnicos está disponível apenas para perfis Admin e Gestor.
+            </div>
+          )}
         </SectionCard>
       </div>
 
@@ -221,9 +278,9 @@ export function TechniciansPage() {
       <ConfirmationModal
         open={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (deleteTarget) {
-            const deleted = deleteTechnician(deleteTarget.id);
+            const deleted = await deleteTechnician(deleteTarget.id);
             if (deleted) {
               setDeleteTarget(null);
             }

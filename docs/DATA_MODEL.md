@@ -1,170 +1,178 @@
 # Modelo de Dados
 
-## Entidades Principais
-- Empresa Contratada
-- Condomínio
-- Técnico
-- Visita Técnica
-- Relatório
-- Contrato
-- Foto
-- Arquivo de Contrato Assinado
+## Estado Atual
+O modelo relacional está definido em `backend/prisma/schema.prisma` e usa PostgreSQL via Prisma ORM.
 
-## Relacionamentos
-- Um condomínio possui muitos contratos.
-- Um condomínio possui muitas visitas.
-- Um técnico possui muitas visitas.
-- Uma visita pode gerar um relatório.
-- Uma visita possui muitos itens de checklist.
-- Uma visita pode possuir muitas fotos.
-- Um contrato pertence a um condomínio.
+Entidades modeladas:
+- `User`
+- `CompanySettings`
+- `Condominium`
+- `Technician`
+- `Visit`
+- `VisitChecklistItem`
+- `VisitPhoto`
+- `Report`
+- `Contract`
+- `File`
 
-## Esquema Relacional Sugerido
-### companies
-- id
-- legal_name
-- cnpj
-- address_line
-- city
-- state
-- legal_representative
-- representative_cpf
-- phone
-- email
-- created_at
-- updated_at
+Persistência real já usada pela aplicação:
+- usuários;
+- condomínios;
+- técnicos.
 
-### condominiums
-- id
-- display_name
-- legal_name
-- cnpj
-- address_line
-- city
-- state
-- manager_name
-- manager_cpf
-- manager_phone
-- manager_email
-- units_count
-- monthly_window
-- created_at
-- updated_at
+As demais entidades estão modeladas para próximas etapas, mas ainda não possuem fluxo completo integrado no frontend/backend.
 
-### technicians
-- id
-- name
-- phone
-- role
-- status
-- notes
-- created_at
-- updated_at
+## Perfis
+### UserRole
+- `admin`
+- `manager`
+- `collaborator`
 
-### contracts
-- id
-- condominium_id
-- contract_number
-- service_type
-- monthly_value
-- due_day
-- term_months
-- start_date
-- signature_date
-- monthly_preventive_visits
-- emergency_sla_hours
-- non_emergency_sla_hours
-- jurisdiction
-- status
-- notes
-- signed_file_id
-- created_at
-- updated_at
+## Entidades
+### User
+- `id`
+- `name`
+- `email`
+- `passwordHash`
+- `role`
+- `isActive`
+- `createdAt`
+- `updatedAt`
 
-### visits
-- id
-- condominium_id
-- technician_id
-- service_type
-- visit_status
-- visit_date
-- responsible_name
-- responsible_phone
-- responsible_role
-- equipment_value
-- acknowledged
-- acknowledged_at
-- actions_performed
-- outside_scope
-- improvements
-- created_at
-- updated_at
+Uso atual:
+- autenticação;
+- autorização por perfil;
+- seed inicial.
 
-### visit_checklist_items
-- id
-- visit_id
-- equipment_label
-- status
-- observations
+### CompanySettings
+- `id`
+- `legalName`
+- `cnpj`
+- `addressLine`
+- `city`
+- `state`
+- `legalRepresentative`
+- `representativeCpf`
+- `phone`
+- `email`
+- `createdAt`
+- `updatedAt`
 
-### visit_photos
-- id
-- visit_id
-- file_name
-- file_url
-- created_at
+Status:
+- modelado;
+- endpoint e integração frontend ainda pendentes.
 
-### reports
-- id
-- visit_id
-- created_at
-- updated_at
+### Condominium
+- `id`
+- `name`
+- `legalName`
+- `cnpj`
+- `addressLine`
+- `city`
+- `state`
+- `managerName`
+- `managerCpf`
+- `managerPhone`
+- `managerEmail`
+- `units`
+- `monthlyWindow`
+- `status`
+- `createdAt`
+- `updatedAt`
 
-### files
-- id
-- file_name
-- mime_type
-- storage_key
-- public_url
-- size_bytes
-- created_at
+Relacionamentos:
+- possui muitas `Visit`;
+- possui muitos `Contract`.
 
-## Descrição dos Campos
-### Condomínio
-- `name`: nome curto de exibição.
-- `legalName`: razão social.
-- `cnpj`: CNPJ.
-- `addressLine`: endereço base.
-- `city`: cidade.
-- `state`: UF.
-- `manager`: responsável legal.
-- `managerCpf`: CPF do responsável.
-- `managerPhone`: telefone.
-- `managerEmail`: e-mail.
-- `units`: número de unidades.
-- `monthlyWindow`: janela mensal de atendimento.
+Status:
+- CRUD backend implementado;
+- frontend integrado via API.
 
-### Técnico
+### Technician
+- `id`
 - `name`
 - `phone`
 - `role`
 - `status`
 - `notes`
+- `createdAt`
+- `updatedAt`
 
-### Visita
+Relacionamentos:
+- possui muitas `Visit`.
+
+Status:
+- CRUD backend implementado;
+- frontend integrado via API.
+
+### Visit
+- `id`
 - `condominiumId`
 - `technicianId`
 - `serviceType`
 - `visitStatus`
 - `visitDate`
-- `responsible`
-- `checklist`
-- `photos`
+- `responsibleName`
+- `responsiblePhone`
+- `responsibleRole`
+- `equipmentValue`
+- `acknowledged`
+- `acknowledgedAt`
 - `actionsPerformed`
 - `outsideScope`
 - `improvements`
+- `createdAt`
+- `updatedAt`
 
-### Contrato
+Relacionamentos:
+- pertence a `Condominium`;
+- pertence a `Technician`;
+- possui muitos `VisitChecklistItem`;
+- possui muitas `VisitPhoto`;
+- pode possuir um `Report`.
+
+Status:
+- modelado;
+- endpoints e integração frontend ainda pendentes.
+
+### VisitChecklistItem
+- `id`
+- `visitId`
+- `equipmentLabel`
+- `status`
+- `observations`
+
+Status:
+- modelado;
+- integração pendente junto com Visitas.
+
+### VisitPhoto
+- `id`
+- `visitId`
+- `fileId`
+- `fileName`
+- `fileUrl`
+- `createdAt`
+
+Status:
+- modelado;
+- upload/storage ainda pendente.
+
+### Report
+- `id`
+- `visitId`
+- `createdAt`
+- `updatedAt`
+
+Relacionamentos:
+- pertence a uma `Visit`.
+
+Status:
+- modelado;
+- endpoints e geração de PDF ainda pendentes.
+
+### Contract
+- `id`
 - `condominiumId`
 - `contractNumber`
 - `serviceType`
@@ -179,70 +187,49 @@
 - `jurisdiction`
 - `status`
 - `notes`
-- `signedFile`
+- `signedFileId`
+- `createdAt`
+- `updatedAt`
 
-## Obrigatórios vs Opcionais
-### Condomínio
-Obrigatórios:
-- nome de exibição
-- razão social
-- endereço
-- cidade
-- UF
-- responsável legal
+Relacionamentos:
+- pertence a `Condominium`;
+- pode referenciar `File` como contrato assinado.
 
-Opcionais:
-- CNPJ
-- CPF
-- telefone
-- e-mail
-- unidades
-- janela mensal
+Status:
+- modelado;
+- endpoints e integração frontend ainda pendentes.
 
-### Técnico
-Obrigatórios:
-- nome
-- telefone
-- função
+### File
+- `id`
+- `fileName`
+- `mimeType`
+- `storageKey`
+- `publicUrl`
+- `sizeBytes`
+- `category`
+- `createdAt`
 
-Opcionais:
-- observações
+Uso planejado:
+- fotos de visita;
+- contratos assinados;
+- anexos de relatório.
 
-### Visita
-Obrigatórios:
-- condomínio
-- técnico
-- tipo de serviço
-- data
-- responsável
+Status:
+- modelado;
+- upload/storage ainda pendente.
 
-Opcionais:
-- valor do equipamento
-- fotos
-- campos textuais
+## Regras de Integridade
+Implementadas no backend:
+- não excluir Condomínio com Visitas ou Contratos vinculados;
+- não excluir Técnico com Visitas vinculadas.
 
-### Contrato
-Obrigatórios:
-- condomínio
-- número do contrato
-- tipo de serviço
-- status
+Planejadas:
+- soft delete;
+- auditoria;
+- versionamento documental;
+- políticas de retenção de arquivos.
 
-Opcionais:
-- arquivo assinado
-- observações
-- alguns dados comerciais, conforme fase do cadastro
-
-## Relacionamentos de Contratos
-- `contracts.condominium_id -> condominiums.id`
-- `contracts.signed_file_id -> files.id`
-
-## Relacionamentos de Visitas
-- `visits.condominium_id -> condominiums.id`
-- `visits.technician_id -> technicians.id`
-- `visit_checklist_items.visit_id -> visits.id`
-- `reports.visit_id -> visits.id`
-
-## Relacionamentos de Fotos
-- `visit_photos.visit_id -> visits.id`
-- no futuro contratos podem ter múltiplos arquivos, sugerindo `contract_files`
+## Observações de Nomenclatura
+- Prisma usa nomes internos em inglês.
+- UI e documentação usam português.
+- Status de negócio permanecem em português para compatibilidade com a interface.

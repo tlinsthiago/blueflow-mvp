@@ -41,6 +41,9 @@ export function CondominiumsPage() {
     updateCondominium,
     deleteCondominium,
     updateContract,
+    domainLoading,
+    domainErrors,
+    canWriteDomain,
   } = useAppContext();
   const [filters, setFilters] = useState({ search: '', status: 'Todos' });
   const [form, setForm] = useState(initialForm);
@@ -48,7 +51,9 @@ export function CondominiumsPage() {
   const [detailsItem, setDetailsItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [previewContract, setPreviewContract] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const canWrite = canWriteDomain();
 
   const filteredCondominiums = useMemo(() => {
     const search = filters.search.trim().toLowerCase();
@@ -74,14 +79,25 @@ export function CondominiumsPage() {
     setEditingId(null);
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-    if (editingId) {
-      updateCondominium(editingId, form);
-    } else {
-      createCondominium(form);
+    if (!canWrite) {
+      return;
     }
-    resetForm();
+
+    setIsSubmitting(true);
+    try {
+      if (editingId) {
+        await updateCondominium(editingId, form);
+      } else {
+        await createCondominium(form);
+      }
+      resetForm();
+    } catch {
+      // Toasts are handled by AppContext.
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function handleEdit(item) {
@@ -131,12 +147,26 @@ export function CondominiumsPage() {
         </FormField>
       </FilterPanel>
 
+      {domainErrors.condominiums ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+          {domainErrors.condominiums}
+        </div>
+      ) : null}
+
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <SectionCard
           title="Condomínios cadastrados"
-          subtitle={`${filteredCondominiums.length} registro(s) encontrado(s) para os filtros aplicados.`}
+          subtitle={
+            domainLoading.condominiums
+              ? 'Carregando condomínios do banco de dados...'
+              : `${filteredCondominiums.length} registro(s) encontrado(s) para os filtros aplicados.`
+          }
         >
-          {filteredCondominiums.length ? (
+          {domainLoading.condominiums ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-600">
+              Carregando condomínios...
+            </div>
+          ) : filteredCondominiums.length ? (
             <div className="space-y-4">
               {filteredCondominiums.map((condo) => {
                 const monthlyStatus = getMonthlyVisitStatus(condo.id, visits);
@@ -163,8 +193,12 @@ export function CondominiumsPage() {
                         <ActionButtons
                           actions={[
                             { label: 'Ver detalhes', onClick: () => setDetailsItem(condo) },
-                            { label: 'Editar', onClick: () => handleEdit(condo) },
-                            { label: 'Excluir', onClick: () => setDeleteTarget(condo), tone: 'danger' },
+                            ...(canWrite
+                              ? [
+                                  { label: 'Editar', onClick: () => handleEdit(condo) },
+                                  { label: 'Excluir', onClick: () => setDeleteTarget(condo), tone: 'danger' },
+                                ]
+                              : []),
                           ]}
                         />
                       </div>
@@ -182,16 +216,21 @@ export function CondominiumsPage() {
         </SectionCard>
 
         <SectionCard
-          title={editingId ? 'Editar condomínio' : 'Cadastrar condomínio'}
-          subtitle="Formulário com dados cadastrais, jurídicos e de contato do responsável legal."
+          title={canWrite ? (editingId ? 'Editar condomínio' : 'Cadastrar condomínio') : 'Permissão de visualização'}
+          subtitle={
+            canWrite
+              ? 'Formulário com dados cadastrais, jurídicos e de contato do responsável legal.'
+              : 'Seu perfil permite consultar condomínios, mas não criar, editar ou excluir registros.'
+          }
           action={
-            editingId ? (
+            editingId && canWrite ? (
               <button type="button" onClick={resetForm} className="text-sm font-semibold text-brand-600">
                 Cancelar edição
               </button>
             ) : null
           }
         >
+          {canWrite ? (
           <form className="space-y-4" onSubmit={handleSubmit}>
             <FormField label="Nome/Razão social do condomínio">
               <input
@@ -299,10 +338,19 @@ export function CondominiumsPage() {
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
               />
             </FormField>
-            <button type="submit" className="w-full rounded-2xl bg-brand-600 px-4 py-3 font-semibold text-white transition hover:bg-brand-500">
-              {editingId ? 'Salvar alterações' : 'Salvar condomínio'}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full rounded-2xl bg-brand-600 px-4 py-3 font-semibold text-white transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isSubmitting ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Salvar condomínio'}
             </button>
           </form>
+          ) : (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+              A criação e manutenção de condomínios está disponível apenas para perfis Admin e Gestor.
+            </div>
+          )}
         </SectionCard>
       </div>
 
@@ -486,9 +534,9 @@ export function CondominiumsPage() {
       <ConfirmationModal
         open={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (deleteTarget) {
-            const deleted = deleteCondominium(deleteTarget.id);
+            const deleted = await deleteCondominium(deleteTarget.id);
             if (deleted) {
               setDeleteTarget(null);
             }
