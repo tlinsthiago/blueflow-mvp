@@ -64,6 +64,32 @@ Filtros:
 Regra de integridade:
 - não excluir técnico com visitas vinculadas.
 
+### Visits
+- `GET /visits`
+- `GET /visits/:id`
+- `POST /visits`
+- `PUT /visits/:id`
+- `DELETE /visits/:id`
+
+Filtros:
+- `condominiumId`
+- `technicianId`
+- `status`
+- `serviceType`
+- `startDate`
+- `endDate`
+- `page`
+- `pageSize`
+
+Permissões:
+- `admin` e `manager`: CRUD completo.
+- `collaborator`: visualizar, criar e editar; não pode excluir.
+
+Regras:
+- não criar ou editar visita com condomínio inexistente;
+- não criar ou editar visita com técnico inexistente;
+- checklist básico pode ser enviado junto da visita.
+
 ## Planejado
 ### Company
 - `GET /company`
@@ -72,12 +98,7 @@ Regra de integridade:
 Permissão planejada:
 - somente `admin` e `manager`.
 
-### Visits
-- `GET /visits`
-- `POST /visits`
-- `GET /visits/:id`
-- `PUT /visits/:id`
-- `DELETE /visits/:id`
+### Visits - Próximas extensões
 - `POST /visits/:id/photos`
 - `POST /visits/:id/generate-report`
 
@@ -145,10 +166,48 @@ Categorias previstas:
 }
 ```
 
+### POST /visits
+```json
+{
+  "condominiumId": "uuid-do-condominio",
+  "technicianId": "uuid-do-tecnico",
+  "serviceType": "Manutenção Preventiva",
+  "status": "scheduled",
+  "visitDate": "2026-05-20T13:00:00.000Z",
+  "responsibleName": "Marcos Lima",
+  "responsibleRole": "Síndico",
+  "notes": "Visita mensal preventiva.",
+  "actionsPerformed": "Inspeção visual e testes operacionais.",
+  "issuesFound": "Sem ocorrências críticas.",
+  "improvementsSuggested": "Reforçar sinalização da casa de bombas.",
+  "checklistItems": [
+    {
+      "equipment": "Bomba de Recalque 1",
+      "status": "normal",
+      "notes": "Operando normalmente."
+    }
+  ]
+}
+```
+
+Status aceitos para visita:
+- `scheduled`
+- `in_progress`
+- `completed`
+- `pending`
+- `cancelled`
+
+Status aceitos para checklist:
+- `normal`
+- `attention`
+- `critical`
+
 ## Integração Frontend
 O frontend já consome:
 - `authService`;
 - `condominiumService`;
 - `technicianService`.
 
-Services de Visitas, Contratos e Relatórios já existem como estrutura base, mas ainda não estão conectados a endpoints implementados.
+O backend de Visitas já existe, mas o frontend ainda não foi integrado nesta etapa.
+
+Services de Contratos e Relatórios já existem como estrutura base, mas ainda não estão conectados a endpoints implementados.

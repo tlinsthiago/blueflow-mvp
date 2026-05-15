@@ -5,6 +5,7 @@ import { authRoutes } from './routes/auth.js';
 import { condominiumRoutes } from './routes/condominiums.js';
 import { healthRoutes } from './routes/health.js';
 import { technicianRoutes } from './routes/technicians.js';
+import { visitRoutes } from './routes/visits.js';
 import { prisma } from './lib/prisma.js';
 import { fail } from './lib/http.js';
 
@@ -54,6 +55,7 @@ export function buildApp() {
   app.register(authRoutes, { prefix: '/auth' });
   app.register(condominiumRoutes, { prefix: '/condominiums' });
   app.register(technicianRoutes, { prefix: '/technicians' });
+  app.register(visitRoutes, { prefix: '/visits' });
 
   app.addHook('onClose', async () => {
     await prisma.$disconnect();

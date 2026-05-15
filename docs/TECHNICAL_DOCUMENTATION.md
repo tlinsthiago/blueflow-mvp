@@ -93,7 +93,7 @@ O `AppContext` deixou de ser persistência principal e passou a atuar como facha
 - expõe `currentUser`, `token`, `isAuthenticated`, `authLoading`;
 - centraliza notificações;
 - expõe helpers de permissão;
-- carrega Condomínios e Técnicos via API;
+- carrega Condomínios, Técnicos e Visitas via API;
 - mantém cache em memória para os dados carregados;
 - atualiza cache após operações confirmadas pela API;
 - mantém métodos temporários em memória para módulos ainda não integrados.
@@ -122,9 +122,18 @@ Essa abordagem evita quebrar as páginas existentes enquanto a migração comple
 - `PUT /technicians/:id`
 - `DELETE /technicians/:id`
 
+### Visitas
+- `GET /visits`
+- `GET /visits/:id`
+- `POST /visits`
+- `PUT /visits/:id`
+- `DELETE /visits/:id`
+
+Observação: endpoints de Visitas existem no backend, com checklist operacional básico, e o frontend já está integrado para listar, criar, editar e excluir conforme permissão.
+
 ## Endpoints Planejados
 - Empresa: `GET /company`, `PUT /company`.
-- Visitas: CRUD, checklist, fotos e geração de relatório.
+- Visitas: fotos e geração de relatório.
 - Relatórios: listagem, detalhe, atualização, exclusão e download/PDF.
 - Contratos: CRUD, documento, impressão/PDF e upload de assinado.
 - Uploads: envio, consulta e remoção de arquivos.
@@ -151,9 +160,12 @@ Entidades já modeladas no Prisma:
 Persistência operacional real implementada até agora:
 - usuários;
 - condomínios;
-- técnicos.
+- técnicos;
+- visitas;
+- itens de checklist de visita.
+- campos de aceite técnico da visita.
 
-Demais entidades estão modeladas, mas os endpoints e a integração frontend ainda não foram concluídos.
+Empresa, Relatórios, Contratos, Arquivos e Uploads estão modelados ou planejados, mas os endpoints e a integração frontend ainda não foram concluídos.
 
 ## Resposta Padrão da API
 ```json
@@ -172,12 +184,14 @@ O backend usa Zod para validar payloads e parâmetros em rotas novas.
 ## Convenções
 - Código interno em inglês.
 - UI e documentação em português do Brasil.
-- Status de negócio em português.
+- Labels e status exibidos na UI em português; enums internos novos podem usar inglês quando fazem parte da API.
 - API REST JSON.
 - Permissões sempre devem ser validadas no backend, mesmo quando já filtradas no frontend.
 
 ## Riscos Técnicos Atuais
-- Visitas, relatórios, contratos e empresa ainda não persistem via API.
+- Relatórios, contratos e empresa ainda não persistem via API.
+- Uploads/fotos de visitas ainda não foram integrados.
+- Assinatura eletrônica e upload de termo assinado ainda não foram implementados.
 - `AppContext` ainda contém compatibilidade temporária para módulos não migrados.
 - Falta React Query ou camada dedicada de cache server-state.
 - Uploads ainda não foram migrados para storage externo.
@@ -189,10 +203,10 @@ O backend usa Zod para validar payloads e parâmetros em rotas novas.
 
 ## Próximas Etapas Técnicas
 1. Integrar Empresa ao backend com RBAC.
-2. Implementar endpoints e integração de Visitas.
-3. Implementar checklist e fotos com storage externo.
-4. Implementar Relatórios persistidos e geração de PDF.
-5. Implementar Contratos persistidos e upload de assinado.
+2. Implementar fotos com storage externo.
+3. Implementar Relatórios persistidos e geração de PDF.
+4. Implementar Contratos persistidos e upload de assinado.
+5. Evoluir aceite técnico para assinatura eletrônica ou upload do termo assinado.
 6. Avaliar React Query para server-state.
 7. Adicionar auditoria, logs estruturados e soft delete.
 8. Preparar multitenancy para SaaS.

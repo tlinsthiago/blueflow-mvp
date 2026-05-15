@@ -2,6 +2,7 @@ import { PlusCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ActionButtons } from '../components/ActionButtons';
+import { AcceptanceTermPreview } from '../components/AcceptanceTermPreview';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { EmptyState } from '../components/EmptyState';
 import { FilterPanel } from '../components/FilterPanel';
@@ -16,7 +17,7 @@ import { useAppContext } from '../context/AppContext';
 import { formatDateTime, isWithinDateRange } from '../utils/formatters';
 
 export function VisitsPage() {
-  const { visits, condominiums, technicians, deleteVisit, generateReport } = useAppContext();
+  const { visits, condominiums, technicians, deleteVisit, domainLoading, domainErrors, canDeleteVisits } = useAppContext();
   const [filters, setFilters] = useState({
     condominiumId: '',
     technicianId: '',
@@ -26,8 +27,10 @@ export function VisitsPage() {
     endDate: '',
   });
   const [detailsItem, setDetailsItem] = useState(null);
+  const [termItem, setTermItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const navigate = useNavigate();
+  const canDelete = canDeleteVisits();
 
   const filteredVisits = useMemo(() => {
     return visits.filter((visit) => {
@@ -135,8 +138,21 @@ export function VisitsPage() {
         </FormField>
       </FilterPanel>
 
-      <SectionCard title="Histórico de visitas técnicas" subtitle={`${filteredVisits.length} registro(s) encontrado(s).`}>
-        {filteredVisits.length ? (
+      {domainErrors.visits ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+          {domainErrors.visits}
+        </div>
+      ) : null}
+
+      <SectionCard
+        title="Histórico de visitas técnicas"
+        subtitle={domainLoading.visits ? 'Carregando visitas do banco de dados...' : `${filteredVisits.length} registro(s) encontrado(s).`}
+      >
+        {domainLoading.visits ? (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-600">
+            Carregando visitas técnicas...
+          </div>
+        ) : filteredVisits.length ? (
           <div className="space-y-4">
             {filteredVisits.map((visit) => {
               const condominium = getCondominium(visit.condominiumId);
@@ -158,9 +174,9 @@ export function VisitsPage() {
                     <ActionButtons
                       actions={[
                         { label: 'Ver detalhes', onClick: () => setDetailsItem(visit) },
+                        { label: 'Visualizar termo', onClick: () => setTermItem(visit) },
                         { label: 'Editar', onClick: () => navigate(`/app/visits/${visit.id}`) },
-                        { label: 'Excluir', onClick: () => setDeleteTarget(visit), tone: 'danger' },
-                        { label: 'Gerar relatório', onClick: () => generateReport(visit.id), tone: 'primary' },
+                        ...(canDelete ? [{ label: 'Excluir', onClick: () => setDeleteTarget(visit), tone: 'danger' }] : []),
                       ]}
                     />
                   </div>
@@ -191,13 +207,31 @@ export function VisitsPage() {
         ) : null}
       </ModalShell>
 
+      <ModalShell
+        open={Boolean(termItem)}
+        onClose={() => setTermItem(null)}
+        title="Termo de instalação e aceite técnico"
+        subtitle="Prévia imprimível do termo de responsabilidade operacional."
+        size="max-w-5xl"
+      >
+        {termItem ? (
+          <AcceptanceTermPreview
+            visit={termItem}
+            condominium={getCondominium(termItem.condominiumId)}
+            technician={getTechnician(termItem.technicianId)}
+          />
+        ) : null}
+      </ModalShell>
+
       <ConfirmationModal
         open={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (deleteTarget) {
-            deleteVisit(deleteTarget.id);
-            setDeleteTarget(null);
+            const deleted = await deleteVisit(deleteTarget.id);
+            if (deleted) {
+              setDeleteTarget(null);
+            }
           }
         }}
         title="Excluir visita técnica"

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FormField } from '../components/FormField';
 import { PageHeader } from '../components/PageHeader';
-import { PhotoUploader } from '../components/PhotoUploader';
 import { ReportPreview } from '../components/ReportPreview';
 import { SectionCard } from '../components/SectionCard';
 import { checklistStatuses, serviceTypes, visitStatuses } from '../data/mockData';
@@ -13,9 +12,10 @@ import { createEmptyVisit, normalizeVisit } from '../utils/visitHelpers';
 export function VisitFormPage() {
   const { visitId } = useParams();
   const navigate = useNavigate();
-  const { condominiums, technicians, visits, saveVisit } = useAppContext();
+  const { condominiums, technicians, visits, saveVisit, domainLoading, domainErrors } = useAppContext();
   const existingVisit = useMemo(() => visits.find((item) => item.id === visitId), [visitId, visits]);
   const [visit, setVisit] = useState(createEmptyVisit());
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (existingVisit) {
@@ -40,19 +40,7 @@ export function VisitFormPage() {
     }));
   }
 
-  function handleAcknowledgeChange(checked) {
-    setVisit((current) => ({
-      ...current,
-      responsible: {
-        ...current.responsible,
-        acknowledged: checked,
-        acknowledgedAt: checked ? new Date().toISOString() : '',
-      },
-      visitStatus: checked && current.visitStatus === 'Pendente' ? 'Concluída' : current.visitStatus,
-    }));
-  }
-
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const payload = {
       ...visit,
@@ -62,16 +50,36 @@ export function VisitFormPage() {
       serviceType: visit.serviceType,
       type: visit.serviceType,
     };
-    saveVisit(payload);
-    navigate('/app/visits');
+
+    setIsSubmitting(true);
+    try {
+      await saveVisit(payload);
+      navigate('/app/visits');
+    } catch {
+      // Toasts are handled by AppContext.
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
         title={existingVisit ? 'Editar Visita Técnica' : 'Formulário de Visita Técnica'}
-        description="Siga o fluxo operacional: condomínio, técnico, responsável, checklist técnico, fotos, termo e relatório."
+        description="Siga o fluxo operacional: condomínio, técnico, responsável, checklist técnico e observações do atendimento."
       />
+
+      {domainErrors.visits ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+          {domainErrors.visits}
+        </div>
+      ) : null}
+
+      {domainLoading.visits && visitId ? (
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-600">
+          Carregando visita técnica...
+        </div>
+      ) : null}
 
       <form className="space-y-6" onSubmit={handleSubmit}>
         <SectionCard title="Fluxo da visita técnica" subtitle="Registro completo da operação com campos preparados para o uso em escala.">
@@ -146,7 +154,7 @@ export function VisitFormPage() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Responsável e termo de responsabilidade" subtitle="Dados de contato do responsável que acompanha a visita técnica.">
+        <SectionCard title="Responsável e aceite técnico" subtitle="Dados do responsável, local de instalação, valor do equipamento e aceite operacional.">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <FormField label="Nome do responsável">
               <input
@@ -157,20 +165,6 @@ export function VisitFormPage() {
                     responsible: { ...current.responsible, name: event.target.value },
                   }))
                 }
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
-                required
-              />
-            </FormField>
-            <FormField label="Telefone">
-              <input
-                value={visit.responsible.phone}
-                onChange={(event) =>
-                  setVisit((current) => ({
-                    ...current,
-                    responsible: { ...current.responsible, phone: event.target.value },
-                  }))
-                }
-                placeholder="(81) 99999-9999"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
                 required
               />
@@ -188,8 +182,11 @@ export function VisitFormPage() {
                 required
               />
             </FormField>
-            <FormField label="Valor do Equipamento">
+            <FormField label="Valor do equipamento">
               <input
+                type="number"
+                min="0"
+                step="0.01"
                 value={visit.responsible.equipmentValue}
                 onChange={(event) =>
                   setVisit((current) => ({
@@ -197,25 +194,46 @@ export function VisitFormPage() {
                     responsible: { ...current.responsible, equipmentValue: event.target.value },
                   }))
                 }
-                placeholder="R$ 0,00"
+                placeholder="0,00"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
+              />
+            </FormField>
+            <FormField label="Local da instalação">
+              <input
+                value={visit.installationLocation}
+                onChange={(event) => setVisit((current) => ({ ...current, installationLocation: event.target.value }))}
+                placeholder="Ex.: Casa de bombas, subsolo"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
               />
             </FormField>
           </div>
-          <div className="mt-4 rounded-2xl bg-slate-50 p-4">
-            <p className="text-sm text-slate-600">
-              Confirmo que os equipamentos hidráulicos relacionados nesta visita técnica foram verificados e que o
-              registro deste atendimento pode ser validado digitalmente para fins de acompanhamento condominial.
-            </p>
-            <label className="mt-4 flex items-center gap-3 text-sm font-medium text-slate-700">
+          <div className="mt-4 grid gap-4 md:grid-cols-[1fr_1.5fr]">
+            <label className="flex items-center gap-3 rounded-2xl border border-slate-200 p-4 text-sm font-medium text-slate-700">
               <input
                 type="checkbox"
                 checked={visit.responsible.acknowledged}
-                onChange={(event) => handleAcknowledgeChange(event.target.checked)}
+                onChange={(event) =>
+                  setVisit((current) => ({
+                    ...current,
+                    responsible: {
+                      ...current.responsible,
+                      acknowledged: event.target.checked,
+                      acknowledgedAt: event.target.checked ? new Date().toISOString() : '',
+                    },
+                  }))
+                }
                 className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
               />
-              Confirmar aceite do termo de responsabilidade
+              Aceite técnico confirmado
             </label>
+            <FormField label="Observações do aceite">
+              <input
+                value={visit.acceptanceNotes}
+                onChange={(event) => setVisit((current) => ({ ...current, acceptanceNotes: event.target.value }))}
+                placeholder="Observações adicionais sobre instalação, funcionamento ou responsabilidade"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
+              />
+            </FormField>
           </div>
         </SectionCard>
 
@@ -278,39 +296,9 @@ export function VisitFormPage() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Fotos e simulação de notificações" subtitle="Anexe evidências e configure os canais simulados de comunicação.">
-          <div className="space-y-5">
-            <PhotoUploader photos={visit.photos} onChange={(photos) => setVisit((current) => ({ ...current, photos }))} />
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="flex items-center gap-3 rounded-2xl border border-slate-200 p-4 text-sm font-medium text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={visit.notifications.whatsapp}
-                  onChange={(event) =>
-                    setVisit((current) => ({
-                      ...current,
-                      notifications: { ...current.notifications, whatsapp: event.target.checked },
-                    }))
-                  }
-                  className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                />
-                Simular notificação por WhatsApp
-              </label>
-              <label className="flex items-center gap-3 rounded-2xl border border-slate-200 p-4 text-sm font-medium text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={visit.notifications.email}
-                  onChange={(event) =>
-                    setVisit((current) => ({
-                      ...current,
-                      notifications: { ...current.notifications, email: event.target.checked },
-                    }))
-                  }
-                  className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                />
-                Simular notificação por e-mail
-              </label>
-            </div>
+        <SectionCard title="Fotos e notificações" subtitle="Etapa planejada para a próxima fase do módulo.">
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+            Uploads de fotos e notificações reais ainda não foram integrados ao backend. Esta visita salvará apenas os dados operacionais e o checklist.
           </div>
         </SectionCard>
 
@@ -328,9 +316,10 @@ export function VisitFormPage() {
           </button>
           <button
             type="submit"
-            className="rounded-2xl bg-brand-600 px-5 py-3 font-semibold text-white transition hover:bg-brand-500"
+            disabled={isSubmitting}
+            className="rounded-2xl bg-brand-600 px-5 py-3 font-semibold text-white transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            Salvar visita técnica
+            {isSubmitting ? 'Salvando...' : 'Salvar visita técnica'}
           </button>
         </div>
       </form>

@@ -18,9 +18,10 @@ Entidades modeladas:
 Persistência real já usada pela aplicação:
 - usuários;
 - condomínios;
-- técnicos.
+- técnicos;
+- visitas e checklist operacional no backend.
 
-As demais entidades estão modeladas para próximas etapas, mas ainda não possuem fluxo completo integrado no frontend/backend.
+Visitas ainda não foram integradas ao frontend. Relatórios, Contratos, Empresa e Uploads ainda não possuem fluxo completo integrado.
 
 ## Perfis
 ### UserRole
@@ -110,17 +111,20 @@ Status:
 - `condominiumId`
 - `technicianId`
 - `serviceType`
-- `visitStatus`
+- `status`
 - `visitDate`
 - `responsibleName`
-- `responsiblePhone`
 - `responsibleRole`
+- `acceptanceConfirmed`
+- `acceptanceResponsibleName`
+- `acceptanceResponsibleRole`
+- `installationLocation`
 - `equipmentValue`
-- `acknowledged`
-- `acknowledgedAt`
+- `acceptanceNotes`
+- `notes`
 - `actionsPerformed`
-- `outsideScope`
-- `improvements`
+- `issuesFound`
+- `improvementsSuggested`
 - `createdAt`
 - `updatedAt`
 
@@ -132,19 +136,21 @@ Relacionamentos:
 - pode possuir um `Report`.
 
 Status:
-- modelado;
-- endpoints e integração frontend ainda pendentes.
+- endpoints backend implementados;
+- integração frontend ainda pendente;
+- uploads e relatórios ainda pendentes.
 
 ### VisitChecklistItem
 - `id`
 - `visitId`
-- `equipmentLabel`
+- `equipment`
 - `status`
-- `observations`
+- `notes`
 
 Status:
 - modelado;
-- integração pendente junto com Visitas.
+- persistido junto com Visitas no backend;
+- integração frontend ainda pendente.
 
 ### VisitPhoto
 - `id`
@@ -222,6 +228,21 @@ Status:
 Implementadas no backend:
 - não excluir Condomínio com Visitas ou Contratos vinculados;
 - não excluir Técnico com Visitas vinculadas.
+- não criar ou editar Visita com Condomínio inexistente;
+- não criar ou editar Visita com Técnico inexistente.
+
+## Enums
+### VisitStatus
+- `scheduled`
+- `in_progress`
+- `completed`
+- `pending`
+- `cancelled`
+
+### ChecklistStatus
+- `normal`
+- `attention`
+- `critical`
 
 Planejadas:
 - soft delete;

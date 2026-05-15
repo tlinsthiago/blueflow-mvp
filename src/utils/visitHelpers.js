@@ -25,6 +25,8 @@ export function createEmptyVisit() {
     actionsPerformed: '',
     outsideScope: '',
     improvements: '',
+    installationLocation: '',
+    acceptanceNotes: '',
     photos: [],
     notifications: {
       whatsapp: true,
@@ -76,8 +78,12 @@ export function normalizeVisit(rawVisit) {
     checklist: rawVisit.checklist?.length ? rawVisit.checklist : createEmptyVisit().checklist,
     responsible: {
       ...createEmptyVisit().responsible,
+      equipmentValue: rawVisit.equipmentValue ?? rawVisit.responsible?.equipmentValue ?? '',
+      acknowledged: rawVisit.acceptanceConfirmed ?? rawVisit.responsible?.acknowledged ?? false,
       ...rawVisit.responsible,
     },
+    installationLocation: rawVisit.installationLocation ?? '',
+    acceptanceNotes: rawVisit.acceptanceNotes ?? '',
     notifications: {
       ...createEmptyVisit().notifications,
       ...rawVisit.notifications,

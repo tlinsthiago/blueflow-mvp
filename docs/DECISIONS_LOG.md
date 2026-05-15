@@ -203,7 +203,7 @@ Aceita como regra funcional inicial
 Considerar `Concluído` quando existir ao menos uma visita `Concluída` no mês atual.
 
 ### Estado atual
-A regra ainda depende da integração futura de Visitas ao backend.
+O backend de Visitas já existe. A regra ainda depende da integração futura de Visitas ao frontend e do alinhamento da UI com os enums internos.
 
 ---
 
@@ -382,8 +382,102 @@ Endpoints integrados:
 - mantém UI existente com cache em memória.
 
 **Negativas**
-- Visitas, Relatórios, Contratos e Empresa ainda precisam ser migrados;
+- Visitas ainda precisam ser integradas ao frontend;
+- Relatórios, Contratos e Empresa ainda precisam ser migrados;
 - `AppContext` ainda contém compatibilidade temporária.
+
+---
+
+## DEC-020: Backend de Visitas com checklist operacional
+### Status
+Aceita
+
+### Decisão
+Implementar endpoints REST de Visitas no backend, com checklist operacional básico persistido em `VisitChecklistItem`.
+
+Endpoints:
+- `GET /visits`
+- `GET /visits/:id`
+- `POST /visits`
+- `PUT /visits/:id`
+- `DELETE /visits/:id`
+
+Enums:
+- `VisitStatus`: `scheduled`, `in_progress`, `completed`, `pending`, `cancelled`.
+- `ChecklistStatus`: `normal`, `attention`, `critical`.
+
+### Regras
+- `admin` e `manager`: CRUD completo.
+- `collaborator`: visualizar, criar e editar; não excluir.
+- Não criar ou editar visita com Condomínio inexistente.
+- Não criar ou editar visita com Técnico inexistente.
+
+### Consequências
+**Positivas**
+- cria a base persistida para a operação técnica;
+- prepara relatórios futuros a partir de visitas reais;
+- mantém checklist junto da visita em uma transação.
+
+**Negativas**
+- uploads de fotos ainda não foram implementados;
+- geração de relatório ainda não foi implementada.
+
+---
+
+## DEC-021: Integração frontend de Visitas
+### Status
+Aceita
+
+### Decisão
+Integrar `VisitsPage` e `VisitFormPage` aos endpoints reais de Visitas, mantendo o `AppContext` como fachada de API/cache.
+
+### Regras
+- `admin` e `manager`: criar, editar e excluir.
+- `collaborator`: visualizar, criar e editar; não excluir.
+- Fotos, uploads e relatórios continuam fora do escopo desta etapa.
+
+### Consequências
+**Positivas**
+- Visitas deixam de depender de persistência local;
+- checklist operacional passa a ser salvo no backend;
+- a operação técnica principal já usa banco real.
+
+**Negativas**
+- campos de fotos/notificações/relatórios permanecem planejados;
+- ainda há mapeamento temporário entre labels em português da UI e enums em inglês da API.
+
+---
+
+## DEC-022: Aceite técnico e termo imprimível em Visitas
+### Status
+Aceita
+
+### Decisão
+Reintroduzir o aceite técnico no módulo de Visitas, persistindo campos de aceite no backend e adicionando uma prévia imprimível do Termo de Instalação, Aceite Técnico e Responsabilidade Operacional.
+
+Campos adicionados:
+- `acceptanceConfirmed`;
+- `acceptanceResponsibleName`;
+- `acceptanceResponsibleRole`;
+- `installationLocation`;
+- `equipmentValue`;
+- `acceptanceNotes`.
+
+### Escopo
+- O termo usa texto adaptado para F TEC AUTOMAÇÃO.
+- A impressão é feita via HTML no navegador.
+- Não há assinatura eletrônica.
+- Não há upload do termo assinado.
+
+### Consequências
+**Positivas**
+- recupera um fluxo operacional importante removido na migração;
+- registra responsabilidade sobre equipamento e valor comercial;
+- prepara futura assinatura/upload do termo.
+
+**Negativas**
+- impressão HTML ainda não equivale a PDF oficial;
+- aceite confirmado não substitui assinatura eletrônica formal.
 
 ---
 

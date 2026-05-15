@@ -48,6 +48,7 @@ O sistema atende a operação da empresa **F TEC AUTOMAÇÃO**, centralizando:
 - Menu filtrado por perfil.
 - CRUD real de Condomínios.
 - CRUD real de Técnicos.
+- CRUD real de Visitas no backend e frontend.
 - Migrations Prisma.
 - Seed de usuários iniciais.
 
@@ -79,7 +80,7 @@ A persistência operacional principal é o backend.
 - permissões;
 - notificações;
 - cache em memória;
-- carregamento de Condomínios e Técnicos via API;
+- carregamento de Condomínios, Técnicos e Visitas via API;
 - compatibilidade temporária para módulos ainda não migrados.
 
 Não deve voltar a ser banco local.
@@ -103,6 +104,13 @@ Não deve voltar a ser banco local.
 - `PUT /technicians/:id`
 - `DELETE /technicians/:id`
 
+### Visitas
+- `GET /visits`
+- `GET /visits/:id`
+- `POST /visits`
+- `PUT /visits/:id`
+- `DELETE /visits/:id`
+
 ## 9. Regras Importantes
 - `admin` e `manager` podem escrever em Condomínios e Técnicos.
 - `collaborator` apenas visualiza Condomínios e Técnicos.
@@ -113,14 +121,11 @@ Não deve voltar a ser banco local.
 
 ## 10. Próxima Sequência Recomendada
 1. Implementar e integrar `CompanySettings`.
-2. Implementar endpoints de Visitas.
-3. Integrar VisitForm e VisitsPage à API.
-4. Persistir checklist.
-5. Implementar Relatórios vinculados a Visitas.
-6. Implementar Contratos via API com RBAC.
-7. Implementar uploads com `File` + storage externo.
-8. Avaliar React Query para server-state.
-9. Adicionar auditoria, soft delete e logs estruturados.
+2. Implementar Relatórios vinculados a Visitas.
+3. Implementar Contratos via API com RBAC.
+4. Implementar uploads com `File` + storage externo.
+5. Avaliar React Query para server-state.
+6. Adicionar auditoria, soft delete e logs estruturados.
 
 ## 11. Instruções Para Futuras IAs
 - Não documentar funcionalidades como implementadas sem verificar código.

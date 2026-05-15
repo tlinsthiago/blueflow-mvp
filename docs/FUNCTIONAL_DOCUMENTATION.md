@@ -14,12 +14,12 @@ O produto nasceu como um MVP frontend-only, com dados em `localStorage`, para va
 - Layout autenticado com menu filtrado por permissão.
 - Gestão de Condomínios integrada ao backend.
 - Gestão de Técnicos integrada ao backend.
-- Páginas existentes para Painel, Visitas, Relatórios, Contratos e Empresa.
+- Gestão de Visitas integrada ao backend, com checklist e aceite técnico.
+- Páginas existentes para Painel, Relatórios, Contratos e Empresa.
 - Componentes reutilizáveis para filtros, cards, modais, ações, upload local e prévias.
 
 ### Parcial ou Ainda Não Integrado ao Backend
 - Painel ainda depende do cache frontend e dos módulos já carregados.
-- Visitas ainda não persistem no banco.
 - Relatórios ainda não persistem no banco.
 - Contratos ainda não persistem no banco.
 - Empresa/Configuração da empresa ainda não persiste no banco.
@@ -94,13 +94,24 @@ Funcionalidades:
 - bloqueio de exclusão no backend quando há visitas vinculadas.
 
 ### Visitas
-Tela e fluxo de formulário existem no frontend, mas a persistência real no backend ainda não foi integrada.
+Implementado com persistência real via API.
 
-Planejado:
-- CRUD via API;
+Funcionalidades:
+- listagem;
+- cadastro e edição para `admin`, `manager` e `collaborator`;
+- exclusão para `admin` e `manager`;
 - vínculo com Condomínio e Técnico;
-- checklist persistido;
-- fotos via storage externo;
+- checklist operacional persistido;
+- aceite técnico confirmado;
+- valor do equipamento;
+- local da instalação;
+- observações do aceite;
+- prévia e impressão de Termo de Instalação, Aceite Técnico e Responsabilidade Operacional.
+
+Ainda planejado:
+- upload de fotos;
+- assinatura eletrônica;
+- upload do termo assinado;
 - geração de relatório pelo backend.
 
 ### Relatórios

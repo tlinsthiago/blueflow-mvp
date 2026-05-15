@@ -6,6 +6,7 @@ import { getStoredToken, getStoredUser, onUnauthorized } from '../services/apiCl
 import * as authService from '../services/authService';
 import { condominiumService } from '../services/condominiumService';
 import { technicianService } from '../services/technicianService';
+import { visitService } from '../services/visitService';
 import { fullAccessRoles, hasAnyRole } from '../auth/permissions';
 
 const AppContext = createContext(null);
@@ -35,11 +36,41 @@ const emptyDataState = {
 const initialDomainLoading = {
   condominiums: false,
   technicians: false,
+  visits: false,
 };
 
 const initialDomainErrors = {
   condominiums: '',
   technicians: '',
+  visits: '',
+};
+
+const visitStatusToApi = {
+  Agendada: 'scheduled',
+  'Em andamento': 'in_progress',
+  Concluída: 'completed',
+  Pendente: 'pending',
+  Cancelada: 'cancelled',
+};
+
+const visitStatusFromApi = {
+  scheduled: 'Agendada',
+  in_progress: 'Em andamento',
+  completed: 'Concluída',
+  pending: 'Pendente',
+  cancelled: 'Cancelada',
+};
+
+const checklistStatusToApi = {
+  Normal: 'normal',
+  Atenção: 'attention',
+  Crítico: 'critical',
+};
+
+const checklistStatusFromApi = {
+  normal: 'Normal',
+  attention: 'Atenção',
+  critical: 'Crítico',
 };
 
 function normalizeApiCondominium(payload) {
@@ -75,6 +106,62 @@ function normalizeTechnician(payload) {
     status: payload.status ?? technicianStatuses[0],
     notes: payload.notes ?? '',
     createdAt: payload.createdAt ?? new Date().toISOString(),
+  };
+}
+
+function normalizeApiVisit(payload) {
+  return normalizeVisit({
+    ...payload,
+    visitStatus: visitStatusFromApi[payload.status] ?? payload.visitStatus ?? 'Pendente',
+    responsible: {
+      name: payload.acceptanceResponsibleName ?? payload.responsibleName ?? '',
+      phone: payload.responsible?.phone ?? '',
+      role: payload.acceptanceResponsibleRole ?? payload.responsibleRole ?? '',
+      equipmentValue: payload.equipmentValue ?? '',
+      acknowledged: payload.acceptanceConfirmed ?? false,
+      acknowledgedAt: payload.status === 'completed' ? payload.updatedAt ?? payload.visitDate : '',
+    },
+    checklist: (payload.checklistItems ?? payload.checklist ?? []).map((item) => ({
+      label: item.equipment ?? item.label,
+      status: checklistStatusFromApi[item.status] ?? item.status ?? 'Normal',
+      observations: item.notes ?? item.observations ?? '',
+    })),
+    actionsPerformed: payload.actionsPerformed ?? '',
+    outsideScope: payload.issuesFound ?? payload.outsideScope ?? '',
+    improvements: payload.improvementsSuggested ?? payload.improvements ?? '',
+    installationLocation: payload.installationLocation ?? '',
+    acceptanceNotes: payload.acceptanceNotes ?? '',
+    photos: [],
+  });
+}
+
+function toVisitPayload(payload) {
+  return {
+    condominiumId: payload.condominiumId,
+    technicianId: payload.technicianId,
+    serviceType: payload.serviceType,
+    status: visitStatusToApi[payload.visitStatus] ?? payload.status ?? 'scheduled',
+    visitDate: payload.visitDate,
+    responsibleName: payload.responsible?.name ?? payload.responsibleName,
+    responsibleRole: payload.responsible?.role ?? payload.responsibleRole,
+    acceptanceConfirmed: payload.responsible?.acknowledged ?? payload.acceptanceConfirmed ?? false,
+    acceptanceResponsibleName: payload.responsible?.name ?? payload.acceptanceResponsibleName ?? payload.responsibleName,
+    acceptanceResponsibleRole: payload.responsible?.role ?? payload.acceptanceResponsibleRole ?? payload.responsibleRole,
+    installationLocation: payload.installationLocation ?? '',
+    equipmentValue:
+      payload.responsible?.equipmentValue === '' || payload.responsible?.equipmentValue == null
+        ? null
+        : Number(payload.responsible.equipmentValue),
+    acceptanceNotes: payload.acceptanceNotes ?? '',
+    notes: payload.notes ?? '',
+    actionsPerformed: payload.actionsPerformed ?? '',
+    issuesFound: payload.outsideScope ?? payload.issuesFound ?? '',
+    improvementsSuggested: payload.improvements ?? payload.improvementsSuggested ?? '',
+    checklistItems: (payload.checklist ?? payload.checklistItems ?? []).map((item) => ({
+      equipment: item.label ?? item.equipment,
+      status: checklistStatusToApi[item.status] ?? item.status ?? 'normal',
+      notes: item.observations ?? item.notes ?? '',
+    })),
   };
 }
 
@@ -148,6 +235,24 @@ export function AppProvider({ children }) {
     }
   }
 
+  async function loadVisits() {
+    setDomainLoading((current) => ({ ...current, visits: true }));
+    setDomainErrors((current) => ({ ...current, visits: '' }));
+
+    try {
+      const payload = await visitService.list({ pageSize: 100 });
+      const visits = (payload.data ?? []).map(normalizeApiVisit);
+      setDataState((current) => ({ ...current, visits }));
+      return visits;
+    } catch (error) {
+      setDomainErrors((current) => ({ ...current, visits: error.message }));
+      notify('error', error.message);
+      return [];
+    } finally {
+      setDomainLoading((current) => ({ ...current, visits: false }));
+    }
+  }
+
   useEffect(() => {
     if (!isAuthenticated || authLoading) {
       return;
@@ -155,6 +260,7 @@ export function AppProvider({ children }) {
 
     loadCondominiums();
     loadTechnicians();
+    loadVisits();
   }, [authLoading, isAuthenticated]);
 
   useEffect(() => {
@@ -207,8 +313,12 @@ export function AppProvider({ children }) {
       canWriteDomain() {
         return hasAnyRole(currentUser, fullAccessRoles);
       },
+      canDeleteVisits() {
+        return hasAnyRole(currentUser, fullAccessRoles);
+      },
       loadCondominiums,
       loadTechnicians,
+      loadVisits,
       async login(credentials) {
         const session = await authService.login(credentials);
         setToken(session.token);
@@ -320,53 +430,47 @@ export function AppProvider({ children }) {
           return false;
         }
       },
-      saveVisit(payload) {
-        const normalizedVisit = normalizeVisit({
-          ...payload,
-          id: payload.id ?? crypto.randomUUID(),
-          updatedAt: new Date().toISOString(),
-          createdAt: payload.createdAt ?? new Date().toISOString(),
-        });
+      async saveVisit(payload) {
+        try {
+          const requestPayload = toVisitPayload(payload);
+          const response = payload.id
+            ? await visitService.update(payload.id, requestPayload)
+            : await visitService.create(requestPayload);
+          const normalizedVisit = normalizeApiVisit(response.data);
 
-        setDataState((current) => {
-          const exists = current.visits.some((item) => item.id === normalizedVisit.id);
-          const nextVisits = exists
-            ? current.visits.map((item) => (item.id === normalizedVisit.id ? normalizedVisit : item))
-            : [normalizedVisit, ...current.visits];
+          setDataState((current) => {
+            const exists = current.visits.some((item) => item.id === normalizedVisit.id);
+            const nextVisits = exists
+              ? current.visits.map((item) => (item.id === normalizedVisit.id ? normalizedVisit : item))
+              : [normalizedVisit, ...current.visits];
 
-          let nextReports = current.reports;
-          const reportExists = current.reports.some((report) => report.visitId === normalizedVisit.id);
+            return {
+              ...current,
+              visits: nextVisits,
+            };
+          });
 
-          if (normalizedVisit.visitStatus === 'Concluída' && !reportExists) {
-            nextReports = [
-              {
-                id: crypto.randomUUID(),
-                visitId: normalizedVisit.id,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-              },
-              ...current.reports,
-            ];
-          }
-
-          return {
-            ...current,
-            visits: nextVisits,
-            reports: nextReports,
-          };
-        });
-
-        notify('success', payload.id ? 'Visita técnica atualizada no cache local da sessão.' : 'Visita técnica cadastrada no cache local da sessão.');
-        return normalizedVisit.id;
+          notify('success', payload.id ? 'Visita técnica atualizada com sucesso.' : 'Visita técnica cadastrada com sucesso.');
+          return normalizedVisit.id;
+        } catch (error) {
+          notify('error', error.message);
+          throw error;
+        }
       },
-      deleteVisit(id) {
-        setDataState((current) => ({
-          ...current,
-          visits: current.visits.filter((item) => item.id !== id),
-          reports: current.reports.filter((item) => item.visitId !== id),
-        }));
-        notify('success', 'Visita técnica excluída do cache local da sessão.');
-        return true;
+      async deleteVisit(id) {
+        try {
+          await visitService.remove(id);
+          setDataState((current) => ({
+            ...current,
+            visits: current.visits.filter((item) => item.id !== id),
+            reports: current.reports.filter((item) => item.visitId !== id),
+          }));
+          notify('success', 'Visita técnica excluída com sucesso.');
+          return true;
+        } catch (error) {
+          notify('error', error.message);
+          return false;
+        }
       },
       generateReport(visitId) {
         const reportExists = dataState.reports.some((report) => report.visitId === visitId);
