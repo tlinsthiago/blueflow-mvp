@@ -10,7 +10,8 @@ O projeto está em V1 fullstack parcial:
 - PostgreSQL Neon;
 - JWT auth;
 - RBAC;
-- CRUD real de Condomínios e Técnicos.
+- CRUD real de Condomínios, Técnicos e Visitas.
+- backend preparado para deploy separado na Vercel.
 
 O histórico do MVP frontend-only permanece documentado, mas não representa mais a arquitetura alvo.
 
@@ -25,6 +26,13 @@ O histórico do MVP frontend-only permanece documentado, mas não representa mai
 - `NEXT_SESSION_CONTEXT.md`: contexto curto para continuidade em novas sessões.
 - `COMPONENT_MAP.md`: mapa dos componentes frontend.
 - `USER_STORIES.md`: histórias de usuário.
+
+## Deploy Atual
+O frontend e o backend devem ser publicados como projetos Vercel separados:
+- frontend: raiz do repositório, com `VITE_API_BASE_URL` apontando para a API pública;
+- backend: pasta `backend`, com `DATABASE_URL`, `JWT_SECRET` e `CORS_ORIGINS` configurados no ambiente da Vercel.
+
+O healthcheck público do backend fica em `https://<backend-project>.vercel.app/health`.
 
 ## Objetivo
 Preservar contexto de produto e arquitetura para continuidade por desenvolvedores, analistas e assistentes de IA, reduzindo dependência do histórico de conversa.

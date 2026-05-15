@@ -203,7 +203,7 @@ Aceita como regra funcional inicial
 Considerar `Concluído` quando existir ao menos uma visita `Concluída` no mês atual.
 
 ### Estado atual
-O backend de Visitas já existe. A regra ainda depende da integração futura de Visitas ao frontend e do alinhamento da UI com os enums internos.
+O backend e o frontend de Visitas já estão integrados. A regra pode evoluir conforme a UI de indicadores mensais for refinada.
 
 ---
 
@@ -382,7 +382,6 @@ Endpoints integrados:
 - mantém UI existente com cache em memória.
 
 **Negativas**
-- Visitas ainda precisam ser integradas ao frontend;
 - Relatórios, Contratos e Empresa ainda precisam ser migrados;
 - `AppContext` ainda contém compatibilidade temporária.
 
@@ -478,6 +477,42 @@ Campos adicionados:
 **Negativas**
 - impressão HTML ainda não equivale a PDF oficial;
 - aceite confirmado não substitui assinatura eletrônica formal.
+
+---
+
+## DEC-023: Backend Fastify publicado como projeto Vercel separado
+### Status
+Aceita
+
+### Decisão
+Preparar o backend Fastify para deploy na Vercel em um projeto separado, usando a pasta `backend` como root directory.
+
+Arquivos adicionados/ajustados:
+- `backend/api/index.js`: handler serverless que reutiliza o app Fastify.
+- `backend/vercel.json`: rewrites para expor a API a partir do domínio do backend.
+- `backend/package.json`: `build` e `postinstall` geram Prisma Client.
+
+### Configuração
+Variáveis obrigatórias em produção:
+- `DATABASE_URL`;
+- `JWT_SECRET`.
+
+Variáveis recomendadas:
+- `JWT_EXPIRES_IN`;
+- `CORS_ORIGINS`.
+
+`PORT` e `HOST` permanecem apenas para execução local.
+
+### Consequências
+**Positivas**
+- remove dependência de backend local para o frontend publicado;
+- mantém `npm run dev` local inalterado;
+- expõe `GET /health` para validação de produção;
+- preserva separação entre frontend e API.
+
+**Negativas**
+- exige configurar dois projetos Vercel ou dois ambientes separados;
+- serverless requer atenção a conexões Prisma/PostgreSQL e tempo de cold start.
 
 ---
 

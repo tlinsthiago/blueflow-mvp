@@ -49,11 +49,13 @@ O MVP original era frontend-only com `localStorage`. Na V1 atual, `localStorage`
 ### Backend
 - `backend/src/app.js`: criação do app Fastify, plugins e registro de rotas.
 - `backend/src/server.js`: inicialização do servidor.
+- `backend/api/index.js`: entrypoint serverless para deploy do backend na Vercel.
 - `backend/src/routes`: rotas HTTP.
 - `backend/src/lib`: Prisma, respostas HTTP, autorização e helpers.
 - `backend/prisma/schema.prisma`: modelo relacional.
 - `backend/prisma/migrations`: migrations do banco.
 - `backend/prisma/seed.js`: seed de usuários iniciais.
+- `backend/vercel.json`: configuração de deploy do backend como projeto Vercel separado.
 
 ### Documentação
 - `docs`: documentação funcional, técnica, roadmap, modelo de dados, decisões e planejamento de API.
@@ -137,6 +139,48 @@ Observação: endpoints de Visitas existem no backend, com checklist operacional
 - Relatórios: listagem, detalhe, atualização, exclusão e download/PDF.
 - Contratos: CRUD, documento, impressão/PDF e upload de assinado.
 - Uploads: envio, consulta e remoção de arquivos.
+
+## Deploy
+### Backend na Vercel
+O backend está preparado para deploy como um projeto Vercel separado, usando a pasta `backend` como root do projeto.
+
+Arquivos relevantes:
+- `backend/api/index.js`: adapta o app Fastify para execução serverless.
+- `backend/vercel.json`: direciona as requisições para o handler serverless.
+- `backend/package.json`: mantém `npm run dev` local e usa `npm run build` para gerar Prisma Client.
+
+Variáveis obrigatórias em produção:
+- `DATABASE_URL`: connection string do PostgreSQL Neon.
+- `JWT_SECRET`: segredo longo e privado para assinatura dos tokens.
+
+Variáveis recomendadas:
+- `JWT_EXPIRES_IN`: tempo de expiração do token, por exemplo `1h`.
+- `CORS_ORIGINS`: lista separada por vírgula com os domínios do frontend.
+
+`PORT` e `HOST` são usados apenas no desenvolvimento local. Na Vercel, a plataforma gerencia a porta.
+
+O endpoint público esperado segue o domínio do projeto de backend na Vercel:
+- `https://<backend-project>.vercel.app`
+
+O healthcheck deve responder em:
+- `GET https://<backend-project>.vercel.app/health`
+
+### CORS
+O backend permite por padrão:
+- `http://localhost:5173`
+- `http://localhost:4173`
+- `http://localhost:3333`
+- `https://ftecautomacao.com.br`
+- `https://www.ftecautomacao.com.br`
+- domínios `https://*.vercel.app`
+
+Também é possível complementar a lista com `CORS_ORIGINS`.
+
+### Frontend publicado
+O frontend deve apontar para a API pública via variável:
+- `VITE_API_BASE_URL=https://<backend-project>.vercel.app`
+
+Após alterar a variável no projeto do frontend na Vercel, é necessário fazer novo deploy do frontend.
 
 ## Banco de Dados
 Banco atual:

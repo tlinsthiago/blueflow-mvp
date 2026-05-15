@@ -9,9 +9,43 @@ import { visitRoutes } from './routes/visits.js';
 import { prisma } from './lib/prisma.js';
 import { fail } from './lib/http.js';
 
-export function buildApp() {
+const defaultAllowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'http://localhost:3333',
+  'https://ftecautomacao.com.br',
+  'https://www.ftecautomacao.com.br',
+];
+
+function getAllowedOrigins() {
+  const configuredOrigins = (process.env.CORS_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return new Set([...defaultAllowedOrigins, ...configuredOrigins]);
+}
+
+function isAllowedOrigin(origin) {
+  if (!origin) {
+    return true;
+  }
+
+  if (getAllowedOrigins().has(origin)) {
+    return true;
+  }
+
+  try {
+    const { hostname, protocol } = new URL(origin);
+    return protocol === 'https:' && hostname.endsWith('.vercel.app');
+  } catch {
+    return false;
+  }
+}
+
+export function buildApp(options = {}) {
   const app = Fastify({
-    logger: true,
+    logger: options.logger ?? true,
   });
 
   const jwtSecret = process.env.JWT_SECRET;
@@ -22,7 +56,14 @@ export function buildApp() {
   app.decorate('prisma', prisma);
 
   app.register(cors, {
-    origin: true,
+    origin(origin, callback) {
+      if (isAllowedOrigin(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error('Origin not allowed by CORS'), false);
+    },
     credentials: true,
   });
 

@@ -10,7 +10,8 @@ O projeto saiu do MVP frontend-only e agora está em uma V1 fullstack parcial:
 - Prisma ORM;
 - autenticação JWT;
 - RBAC;
-- CRUD real de Condomínios e Técnicos.
+- CRUD real de Condomínios, Técnicos e Visitas.
+- backend preparado para deploy separado na Vercel.
 
 ## 2. Contexto de Negócio
 O sistema atende a operação da empresa **F TEC AUTOMAÇÃO**, centralizando:
@@ -49,13 +50,13 @@ O sistema atende a operação da empresa **F TEC AUTOMAÇÃO**, centralizando:
 - CRUD real de Condomínios.
 - CRUD real de Técnicos.
 - CRUD real de Visitas no backend e frontend.
+- Termo de instalação e aceite técnico imprimível em Visitas.
+- Entry point serverless do backend para Vercel.
 - Migrations Prisma.
 - Seed de usuários iniciais.
 
 ### Ainda Não Integrado
 - Empresa.
-- Visitas.
-- Checklist persistido.
 - Fotos/uploads.
 - Relatórios.
 - Contratos.
@@ -118,8 +119,21 @@ Não deve voltar a ser banco local.
 - Não excluir Técnico com Visitas.
 - Contratos e Empresa devem permanecer restritos a `admin` e `manager`.
 - Uploads futuros devem usar Vercel Blob ou storage equivalente.
+- Frontend publicado deve usar `VITE_API_BASE_URL` apontando para a URL pública do backend.
+- Backend publicado deve ter `DATABASE_URL`, `JWT_SECRET` e `CORS_ORIGINS` configurados na Vercel.
 
-## 10. Próxima Sequência Recomendada
+## 10. Deploy
+Backend:
+- projeto Vercel separado com root directory `backend`;
+- build command `npm run build`;
+- handler serverless em `backend/api/index.js`;
+- healthcheck público em `https://<backend-project>.vercel.app/health`.
+
+Frontend:
+- configurar `VITE_API_BASE_URL=https://<backend-project>.vercel.app`;
+- redeploy após alterar variáveis de ambiente.
+
+## 11. Próxima Sequência Recomendada
 1. Implementar e integrar `CompanySettings`.
 2. Implementar Relatórios vinculados a Visitas.
 3. Implementar Contratos via API com RBAC.
@@ -127,7 +141,7 @@ Não deve voltar a ser banco local.
 5. Avaliar React Query para server-state.
 6. Adicionar auditoria, soft delete e logs estruturados.
 
-## 11. Instruções Para Futuras IAs
+## 12. Instruções Para Futuras IAs
 - Não documentar funcionalidades como implementadas sem verificar código.
 - Não reintroduzir persistência operacional em `localStorage`.
 - Preservar UI em português do Brasil.
