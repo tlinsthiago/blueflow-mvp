@@ -174,6 +174,13 @@ function serializeError(error) {
 }
 
 function logUploadStep(request, step, details = {}) {
+  console.log('[visit_file_upload]', {
+    step,
+    visitId: details.visitId,
+    fileType: details.fileType,
+    hasBlobToken: details.hasBlobToken,
+  });
+
   request.log.info(
     {
       event: 'visit_file_upload',
@@ -185,6 +192,16 @@ function logUploadStep(request, step, details = {}) {
 }
 
 function logUploadError(request, step, error, details = {}) {
+  console.error('[visit_file_upload]', {
+    step,
+    visitId: details.visitId,
+    fileType: details.fileType,
+    hasBlobToken: details.hasBlobToken,
+    errorName: error?.name,
+    errorMessage: error?.message,
+    errorStack: error?.stack,
+  });
+
   request.log.error(
     {
       event: 'visit_file_upload',
