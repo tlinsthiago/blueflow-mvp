@@ -1,5 +1,6 @@
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
+import multipart from '@fastify/multipart';
 import Fastify from 'fastify';
 import { authRoutes } from './routes/auth.js';
 import { condominiumRoutes } from './routes/condominiums.js';
@@ -66,6 +67,8 @@ export function buildApp(options = {}) {
     },
     credentials: true,
   });
+
+  app.register(multipart);
 
   app.register(jwt, {
     secret: jwtSecret,

@@ -27,6 +27,14 @@ enum ChecklistStatus {
   critical
 }
 
+enum FileType {
+  reservoir_photo
+  pump_photo
+  electrical_panel_photo
+  signed_acceptance_term
+  other
+}
+
 model User {
   id           String   @id @default(uuid())
   name         String
@@ -119,6 +127,7 @@ model Visit {
   technician       Technician           @relation(fields: [technicianId], references: [id], onDelete: Restrict)
   checklistItems   VisitChecklistItem[]
   photos           VisitPhoto[]
+  files            File[]
   report           Report?
 
   @@index([condominiumId])
@@ -194,15 +203,24 @@ model Contract {
 
 model File {
   id              String       @id @default(uuid())
+  visitId         String?
   fileName        String
+  fileType        FileType     @default(other)
   mimeType        String
   storageKey      String
+  url             String?
+  size            Int?
+  uploadedAt      DateTime     @default(now())
+  uploadedBy      String?
   publicUrl       String?
   sizeBytes       Int?
   category        String?
   createdAt       DateTime     @default(now())
+  visit           Visit?       @relation(fields: [visitId], references: [id], onDelete: Cascade)
   visitPhotos     VisitPhoto[]
   signedContracts Contract[]   @relation("ContractSignedFile")
 
+  @@index([visitId])
+  @@index([fileType])
   @@map("files")
 }

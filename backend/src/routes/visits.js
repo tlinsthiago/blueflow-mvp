@@ -1,9 +1,13 @@
+import { del, put } from '@vercel/blob';
 import { z } from 'zod';
 import { requireRoles, writeRoles } from '../lib/authorization.js';
 import { fail, getPagination, ok, paginationMeta, parseWithSchema } from '../lib/http.js';
 
 const visitStatuses = ['scheduled', 'in_progress', 'completed', 'pending', 'cancelled'];
 const checklistStatuses = ['normal', 'attention', 'critical'];
+const fileTypes = ['reservoir_photo', 'pump_photo', 'electrical_panel_photo', 'signed_acceptance_term', 'other'];
+const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf'];
+const maxUploadSizeBytes = 10 * 1024 * 1024;
 const createOrEditRoles = [...writeRoles, 'collaborator'];
 
 const checklistItemSchema = z.object({
@@ -48,13 +52,56 @@ const idParamsSchema = z.object({
   id: z.string().uuid('ID inválido.'),
 });
 
+const fileParamsSchema = z.object({
+  id: z.string().uuid('ID da visita invÃ¡lido.'),
+  fileId: z.string().uuid('ID do arquivo invÃ¡lido.'),
+});
+
+const fileTypeSchema = z.enum(fileTypes);
+
 const visitInclude = {
   condominium: true,
   technician: true,
   checklistItems: {
     orderBy: { equipment: 'asc' },
   },
+  files: {
+    orderBy: { uploadedAt: 'desc' },
+  },
 };
+
+function sanitizeFileName(fileName) {
+  return fileName
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase();
+}
+
+async function streamToBuffer(stream) {
+  const chunks = [];
+
+  for await (const chunk of stream) {
+    chunks.push(chunk);
+  }
+
+  return Buffer.concat(chunks);
+}
+
+async function getVisitOrFail(app, visitId, reply) {
+  const visit = await app.prisma.visit.findUnique({
+    where: { id: visitId },
+    select: { id: true },
+  });
+
+  if (!visit) {
+    return fail(reply, 404, 'Visita nÃ£o encontrada.');
+  }
+
+  return visit;
+}
 
 function cleanVisitPayload(payload) {
   return {
@@ -165,6 +212,158 @@ export async function visitRoutes(app) {
     ]);
 
     return ok(items, paginationMeta({ page: pagination.page, pageSize: pagination.pageSize, total }));
+  });
+
+  app.get('/:id/files', async (request, reply) => {
+    const parsed = parseWithSchema(idParamsSchema, request.params);
+    if (parsed.error) {
+      return fail(reply, 400, 'ParÃ¢metros invÃ¡lidos.', parsed.error);
+    }
+
+    const visit = await getVisitOrFail(app, parsed.data.id, reply);
+    if (!visit.id) {
+      return visit;
+    }
+
+    const files = await app.prisma.file.findMany({
+      where: { visitId: parsed.data.id },
+      orderBy: { uploadedAt: 'desc' },
+    });
+
+    return ok(files);
+  });
+
+  app.post('/:id/files', { preHandler: [requireRoles(createOrEditRoles)] }, async (request, reply) => {
+    const parsed = parseWithSchema(idParamsSchema, request.params);
+    if (parsed.error) {
+      return fail(reply, 400, 'ParÃ¢metros invÃ¡lidos.', parsed.error);
+    }
+
+    const visit = await getVisitOrFail(app, parsed.data.id, reply);
+    if (!visit.id) {
+      return visit;
+    }
+
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return fail(reply, 500, 'Upload nÃ£o configurado. Defina BLOB_READ_WRITE_TOKEN no backend.');
+    }
+
+    let selectedFile = null;
+    let selectedFileType = null;
+
+    try {
+      const parts = request.parts({
+        limits: {
+          fileSize: maxUploadSizeBytes,
+          files: 1,
+        },
+      });
+
+      for await (const part of parts) {
+        if (part.type === 'file') {
+          if (part.fieldname !== 'file') {
+            part.file.resume();
+            continue;
+          }
+
+          const buffer = await streamToBuffer(part.file);
+          selectedFile = {
+            buffer,
+            fileName: part.filename,
+            mimeType: part.mimetype,
+            truncated: part.file.truncated,
+          };
+          continue;
+        }
+
+        if (part.fieldname === 'fileType') {
+          selectedFileType = part.value;
+        }
+      }
+    } catch (error) {
+      if (error.code === 'FST_REQ_FILE_TOO_LARGE') {
+        return fail(reply, 413, 'Arquivo excede o tamanho mÃ¡ximo permitido de 10 MB.');
+      }
+
+      throw error;
+    }
+
+    if (!selectedFile) {
+      return fail(reply, 400, 'Envie um arquivo no campo file.');
+    }
+
+    if (selectedFile.truncated || selectedFile.buffer.length > maxUploadSizeBytes) {
+      return fail(reply, 413, 'Arquivo excede o tamanho mÃ¡ximo permitido de 10 MB.');
+    }
+
+    const typeValidation = fileTypeSchema.safeParse(selectedFileType ?? 'other');
+    if (!typeValidation.success) {
+      return fail(reply, 400, 'Tipo de arquivo invÃ¡lido.');
+    }
+
+    if (!allowedMimeTypes.includes(selectedFile.mimeType)) {
+      return fail(reply, 400, 'Tipo de arquivo nÃ£o permitido. Envie imagens ou PDF.');
+    }
+
+    const safeFileName = sanitizeFileName(selectedFile.fileName || 'arquivo');
+    const storagePath = `visits/${parsed.data.id}/${typeValidation.data}/${Date.now()}-${safeFileName}`;
+    const blob = await put(storagePath, selectedFile.buffer, {
+      access: 'public',
+      contentType: selectedFile.mimeType,
+      addRandomSuffix: true,
+    });
+
+    const file = await app.prisma.file.create({
+      data: {
+        visitId: parsed.data.id,
+        fileName: selectedFile.fileName || safeFileName,
+        fileType: typeValidation.data,
+        mimeType: selectedFile.mimeType,
+        storageKey: blob.pathname ?? storagePath,
+        url: blob.url,
+        size: selectedFile.buffer.length,
+        uploadedBy: request.currentUser.id,
+        publicUrl: blob.url,
+        sizeBytes: selectedFile.buffer.length,
+        category: typeValidation.data,
+      },
+    });
+
+    return reply.code(201).send(ok(file));
+  });
+
+  app.delete('/:id/files/:fileId', { preHandler: [requireRoles(writeRoles)] }, async (request, reply) => {
+    const parsed = parseWithSchema(fileParamsSchema, request.params);
+    if (parsed.error) {
+      return fail(reply, 400, 'ParÃ¢metros invÃ¡lidos.', parsed.error);
+    }
+
+    const visit = await getVisitOrFail(app, parsed.data.id, reply);
+    if (!visit.id) {
+      return visit;
+    }
+
+    const file = await app.prisma.file.findFirst({
+      where: {
+        id: parsed.data.fileId,
+        visitId: parsed.data.id,
+      },
+    });
+
+    if (!file) {
+      return fail(reply, 404, 'Arquivo nÃ£o encontrado.');
+    }
+
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return fail(reply, 500, 'Upload nÃ£o configurado. Defina BLOB_READ_WRITE_TOKEN no backend.');
+    }
+
+    await del(file.url ?? file.publicUrl ?? file.storageKey);
+    await app.prisma.file.delete({
+      where: { id: file.id },
+    });
+
+    return ok({ id: file.id });
   });
 
   app.get('/:id', async (request, reply) => {
