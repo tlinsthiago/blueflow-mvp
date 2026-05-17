@@ -103,6 +103,22 @@ async function getVisitOrFail(app, visitId, reply) {
   return visit;
 }
 
+function getUploadFailureMessage(error) {
+  if (error.code === 'P2021' || error.code === 'P2022') {
+    return 'Banco de dados nÃ£o estÃ¡ atualizado para uploads. Rode a migration de arquivos de Visitas em produÃ§Ã£o.';
+  }
+
+  if (error.message?.includes('Unknown argument')) {
+    return 'Backend nÃ£o foi atualizado completamente para uploads. Gere o Prisma Client e faÃ§a novo deploy.';
+  }
+
+  if (error.message?.toLowerCase().includes('blob') || error.message?.toLowerCase().includes('token')) {
+    return 'Vercel Blob recusou o upload. Verifique BLOB_READ_WRITE_TOKEN no ambiente do backend.';
+  }
+
+  return 'NÃ£o foi possÃ­vel enviar o arquivo. Verifique a configuraÃ§Ã£o do Blob e as migrations do banco.';
+}
+
 function cleanVisitPayload(payload) {
   return {
     condominiumId: payload.condominiumId,
@@ -307,29 +323,41 @@ export async function visitRoutes(app) {
 
     const safeFileName = sanitizeFileName(selectedFile.fileName || 'arquivo');
     const storagePath = `visits/${parsed.data.id}/${typeValidation.data}/${Date.now()}-${safeFileName}`;
-    const blob = await put(storagePath, selectedFile.buffer, {
-      access: 'public',
-      contentType: selectedFile.mimeType,
-      addRandomSuffix: true,
-    });
+    let blob = null;
 
-    const file = await app.prisma.file.create({
-      data: {
-        visitId: parsed.data.id,
-        fileName: selectedFile.fileName || safeFileName,
-        fileType: typeValidation.data,
-        mimeType: selectedFile.mimeType,
-        storageKey: blob.pathname ?? storagePath,
-        url: blob.url,
-        size: selectedFile.buffer.length,
-        uploadedBy: request.currentUser.id,
-        publicUrl: blob.url,
-        sizeBytes: selectedFile.buffer.length,
-        category: typeValidation.data,
-      },
-    });
+    try {
+      blob = await put(storagePath, selectedFile.buffer, {
+        access: 'public',
+        contentType: selectedFile.mimeType,
+        addRandomSuffix: true,
+      });
 
-    return reply.code(201).send(ok(file));
+      const file = await app.prisma.file.create({
+        data: {
+          visitId: parsed.data.id,
+          fileName: selectedFile.fileName || safeFileName,
+          fileType: typeValidation.data,
+          mimeType: selectedFile.mimeType,
+          storageKey: blob.pathname ?? storagePath,
+          url: blob.url,
+          size: selectedFile.buffer.length,
+          uploadedBy: request.currentUser.id,
+          publicUrl: blob.url,
+          sizeBytes: selectedFile.buffer.length,
+          category: typeValidation.data,
+        },
+      });
+
+      return reply.code(201).send(ok(file));
+    } catch (error) {
+      request.log.error(error);
+
+      if (blob?.url) {
+        await del(blob.url).catch((cleanupError) => request.log.error(cleanupError));
+      }
+
+      return fail(reply, 500, getUploadFailureMessage(error));
+    }
   });
 
   app.delete('/:id/files/:fileId', { preHandler: [requireRoles(writeRoles)] }, async (request, reply) => {

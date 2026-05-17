@@ -48,7 +48,20 @@ async function parseResponse(response) {
     return response.json();
   }
 
-  return null;
+  const text = await response.text();
+  if (!text) {
+    return null;
+  }
+
+  return {
+    data: null,
+    meta: {},
+    errors: [
+      {
+        message: text.length > 240 ? text.slice(0, 240) : text,
+      },
+    ],
+  };
 }
 
 export async function apiRequest(path, options = {}) {

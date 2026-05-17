@@ -95,6 +95,24 @@ export function buildApp(options = {}) {
     request.currentUser = user;
   });
 
+  app.setErrorHandler((error, request, reply) => {
+    request.log.error(error);
+
+    if (reply.sent) {
+      return;
+    }
+
+    if (error.code === 'FST_REQ_FILE_TOO_LARGE') {
+      return fail(reply, 413, 'Arquivo excede o tamanho mÃ¡ximo permitido.');
+    }
+
+    if (error.code === 'P2021' || error.code === 'P2022') {
+      return fail(reply, 500, 'Banco de dados nÃ£o estÃ¡ atualizado para esta operaÃ§Ã£o. Rode as migrations do Prisma em produÃ§Ã£o.');
+    }
+
+    return fail(reply, error.statusCode ?? 500, 'Erro interno ao processar a requisiÃ§Ã£o.');
+  });
+
   app.register(healthRoutes);
   app.register(authRoutes, { prefix: '/auth' });
   app.register(condominiumRoutes, { prefix: '/condominiums' });
