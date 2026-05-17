@@ -44,6 +44,23 @@ function isAllowedOrigin(origin) {
   }
 }
 
+function serializeError(error) {
+  return {
+    name: error?.name,
+    code: error?.code,
+    message: error?.message,
+    stack: error?.stack,
+    cause: error?.cause
+      ? {
+          name: error.cause.name,
+          code: error.cause.code,
+          message: error.cause.message,
+          stack: error.cause.stack,
+        }
+      : undefined,
+  };
+}
+
 export function buildApp(options = {}) {
   const app = Fastify({
     logger: options.logger ?? true,
@@ -96,7 +113,15 @@ export function buildApp(options = {}) {
   });
 
   app.setErrorHandler((error, request, reply) => {
-    request.log.error(error);
+    request.log.error(
+      {
+        event: 'unhandled_request_error',
+        method: request.method,
+        url: request.url,
+        error: serializeError(error),
+      },
+      'unhandled request error'
+    );
 
     if (reply.sent) {
       return;
