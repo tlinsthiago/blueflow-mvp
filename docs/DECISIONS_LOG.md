@@ -523,7 +523,7 @@ Variáveis recomendadas:
 Aceita
 
 ### Decisão
-Implementar uploads reais no módulo de Visitas usando Vercel Blob para armazenar arquivos e Prisma/PostgreSQL apenas para metadados.
+Implementar uploads reais no módulo de Visitas usando Vercel Blob privado para armazenar arquivos e Prisma/PostgreSQL apenas para metadados.
 
 Arquivos suportados:
 - `reservoir_photo`;
@@ -535,6 +535,7 @@ Arquivos suportados:
 Endpoints:
 - `GET /visits/:id/files`;
 - `POST /visits/:id/files`;
+- `GET /visits/:id/files/:fileId/download`;
 - `DELETE /visits/:id/files/:fileId`.
 
 ### Regras
@@ -545,6 +546,7 @@ Endpoints:
 - Não salvar base64.
 - Não salvar arquivo no PostgreSQL.
 - Não salvar arquivo no filesystem da Vercel.
+- Não expor arquivos por URL pública; visualização/download passam por endpoint autenticado.
 
 ### Configuração
 O backend precisa da variável:

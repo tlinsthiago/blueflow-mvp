@@ -1,4 +1,5 @@
-import { del, put } from '@vercel/blob';
+import { del, get, put } from '@vercel/blob';
+import { Readable } from 'node:stream';
 import { z } from 'zod';
 import { requireRoles, writeRoles } from '../lib/authorization.js';
 import { fail, getPagination, ok, paginationMeta, parseWithSchema } from '../lib/http.js';
@@ -478,7 +479,7 @@ export async function visitRoutes(app) {
       });
 
       blob = await put(storagePath, selectedFile.buffer, {
-        access: 'public',
+        access: 'private',
         contentType: selectedFile.mimeType,
         addRandomSuffix: true,
       });
@@ -541,6 +542,79 @@ export async function visitRoutes(app) {
       }
 
       return fail(reply, 500, 'Falha ao enviar arquivo para Vercel Blob.');
+    }
+  });
+
+  app.get('/:id/files/:fileId/download', async (request, reply) => {
+    const parsed = parseWithSchema(fileParamsSchema, request.params);
+    if (parsed.error) {
+      return fail(reply, 400, 'ParÃƒÂ¢metros invÃƒÂ¡lidos.', parsed.error);
+    }
+
+    const baseLog = {
+      visitId: parsed.data.id,
+      fileId: parsed.data.fileId,
+      userId: request.currentUser?.id,
+      userRole: request.currentUser?.role,
+      hasBlobToken: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+    };
+
+    logUploadStep(request, 'download_request_started', baseLog);
+
+    const visit = await getVisitOrFail(app, parsed.data.id, reply);
+    if (!visit.id) {
+      return visit;
+    }
+
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      logUploadStep(request, 'download_blob_token_missing', baseLog);
+      return fail(reply, 500, 'Download nÃƒÂ£o configurado. Defina BLOB_READ_WRITE_TOKEN no backend.');
+    }
+
+    const file = await app.prisma.file.findFirst({
+      where: {
+        id: parsed.data.fileId,
+        visitId: parsed.data.id,
+      },
+    });
+
+    if (!file) {
+      return fail(reply, 404, 'Arquivo nÃƒÂ£o encontrado.');
+    }
+
+    try {
+      logUploadStep(request, 'private_blob_download_started', {
+        ...baseLog,
+        fileType: file.fileType,
+      });
+
+      const blob = await get(file.storageKey, {
+        access: 'private',
+        useCache: false,
+      });
+
+      if (!blob || blob.statusCode !== 200 || !blob.stream) {
+        return fail(reply, 404, 'Arquivo nÃƒÂ£o encontrado no storage.');
+      }
+
+      logUploadStep(request, 'private_blob_download_finished', {
+        ...baseLog,
+        fileType: file.fileType,
+      });
+
+      reply.header('Content-Type', file.mimeType);
+      reply.header('Content-Length', String(file.size ?? file.sizeBytes ?? blob.blob.size));
+      reply.header('Content-Disposition', `inline; filename="${encodeURIComponent(file.fileName)}"`);
+      reply.header('Cache-Control', 'private, max-age=60');
+
+      return reply.send(Readable.fromWeb(blob.stream));
+    } catch (error) {
+      logUploadError(request, 'private_blob_download_failed', error, {
+        ...baseLog,
+        fileType: file.fileType,
+      });
+
+      return fail(reply, 500, 'Falha ao baixar arquivo privado.');
     }
   });
 

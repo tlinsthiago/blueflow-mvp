@@ -538,6 +538,24 @@ export function AppProvider({ children }) {
           return false;
         }
       },
+      async openVisitFile(visitId, file) {
+        try {
+          const blob = await visitService.downloadFile(visitId, file.id);
+          const objectUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = objectUrl;
+          link.target = '_blank';
+          link.rel = 'noreferrer';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+          return true;
+        } catch (error) {
+          notify('error', error.message);
+          return false;
+        }
+      },
       generateReport(visitId) {
         const reportExists = dataState.reports.some((report) => report.visitId === visitId);
         if (reportExists) {

@@ -20,7 +20,7 @@ Persistência real já usada pela aplicação:
 - condomínios;
 - técnicos;
 - visitas e checklist operacional;
-- arquivos de visitas com metadados no PostgreSQL e conteúdo no Vercel Blob.
+- arquivos de visitas com metadados no PostgreSQL e conteúdo no Vercel Blob privado.
 
 Relatórios, Contratos e Empresa ainda não possuem fluxo completo integrado.
 
@@ -236,6 +236,7 @@ Uso planejado:
 
 Status:
 - upload de arquivos de Visitas implementado com Vercel Blob;
+- acesso aos arquivos passa por endpoint autenticado de download/proxy;
 - o banco salva apenas metadados;
 - nenhum arquivo é salvo no PostgreSQL ou filesystem da Vercel.
 

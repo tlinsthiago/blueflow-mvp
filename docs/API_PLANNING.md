@@ -72,6 +72,7 @@ Regra de integridade:
 - `DELETE /visits/:id`
 - `GET /visits/:id/files`
 - `POST /visits/:id/files`
+- `GET /visits/:id/files/:fileId/download`
 - `DELETE /visits/:id/files/:fileId`
 
 Filtros:
@@ -94,8 +95,9 @@ Regras:
 - não criar ou editar visita com técnico inexistente;
 - checklist básico pode ser enviado junto da visita.
 - upload usa `multipart/form-data` com campo `file` e `fileType`;
-- arquivos são armazenados no Vercel Blob;
+- arquivos são armazenados em Vercel Blob privado;
 - o banco salva apenas metadados do arquivo;
+- visualização/download exigem autenticação e passam pelo endpoint seguro;
 - limite atual de upload: 10 MB;
 - tipos permitidos: imagens e PDF.
 

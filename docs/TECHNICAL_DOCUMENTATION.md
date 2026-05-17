@@ -30,7 +30,7 @@ O MVP original era frontend-only com `localStorage`. Na V1 atual, `localStorage`
 - Validação com Zod
 
 ### Storage
-- Vercel Blob para arquivos de Visitas.
+- Vercel Blob privado para arquivos de Visitas.
 - Uploads de Contratos, Relatórios e demais anexos ainda serão evoluídos por módulo.
 
 ## Estrutura de Pastas
@@ -132,6 +132,7 @@ Essa abordagem evita quebrar as páginas existentes enquanto a migração comple
 - `DELETE /visits/:id`
 - `GET /visits/:id/files`
 - `POST /visits/:id/files`
+- `GET /visits/:id/files/:fileId/download`
 - `DELETE /visits/:id/files/:fileId`
 
 Observação: endpoints de Visitas existem no backend, com checklist operacional básico, e o frontend já está integrado para listar, criar, editar e excluir conforme permissão.
@@ -219,7 +220,7 @@ Empresa, Relatórios e Contratos estão modelados ou planejados, mas os endpoint
 ## Uploads de Visitas
 Implementado com:
 - `@fastify/multipart` para receber `multipart/form-data`;
-- `@vercel/blob` para armazenar o conteúdo dos arquivos;
+- `@vercel/blob` em store privado para armazenar o conteúdo dos arquivos;
 - Prisma `File` para salvar metadados.
 
 Arquivos suportados:
@@ -233,6 +234,8 @@ Regras:
 - não salvar base64;
 - não salvar arquivo no PostgreSQL;
 - não salvar arquivo no filesystem da Vercel;
+- não abrir arquivos diretamente por URL pública;
+- visualização/download passam por `GET /visits/:id/files/:fileId/download`, com JWT e RBAC;
 - limite atual de 10 MB por arquivo;
 - mime types permitidos: imagens e PDF;
 - `admin` e `manager`: enviam, listam e excluem;

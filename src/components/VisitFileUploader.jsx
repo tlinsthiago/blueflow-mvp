@@ -28,7 +28,7 @@ function formatFileSize(size = 0) {
   return `${(size / 1024 / 1024).toFixed(1)} MB`;
 }
 
-export function VisitFileUploader({ files = [], disabled = false, canDelete = false, onUpload, onDelete }) {
+export function VisitFileUploader({ files = [], disabled = false, canDelete = false, onUpload, onDelete, onOpen }) {
   const [isUploading, setIsUploading] = useState(false);
 
   async function handleFileChange(event, fileType) {
@@ -92,13 +92,9 @@ export function VisitFileUploader({ files = [], disabled = false, canDelete = fa
           {files.map((file) => (
             <div key={file.id} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-3">
-                {file.mimeType?.startsWith('image/') && file.url ? (
-                  <img src={file.url} alt={file.fileName} className="h-14 w-14 rounded-xl object-cover" />
-                ) : (
-                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
-                    <FileText size={22} />
-                  </div>
-                )}
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
+                  <FileText size={22} />
+                </div>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-slate-900">{file.fileName}</p>
                   <p className="text-xs text-slate-500">
@@ -107,16 +103,15 @@ export function VisitFileUploader({ files = [], disabled = false, canDelete = fa
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                {file.url ? (
-                  <a
-                    href={file.url}
-                    target="_blank"
-                    rel="noreferrer"
+                {onOpen ? (
+                  <button
+                    type="button"
+                    onClick={() => onOpen(file)}
                     className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
                   >
                     <ExternalLink size={14} />
                     Abrir
-                  </a>
+                  </button>
                 ) : null}
                 {canDelete ? (
                   <button

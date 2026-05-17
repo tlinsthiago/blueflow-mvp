@@ -93,9 +93,11 @@ export function ReportPreview({ visit, condominium, technician }) {
       {visit.photos?.length ? (
         <div>
           <h3 className="font-semibold text-slate-900">Fotos Anexadas</h3>
-          <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
             {visit.photos.map((photo) => (
-              <img key={photo.id} src={photo.url} alt={photo.name} className="h-28 w-full rounded-2xl object-cover" />
+              <div key={photo.id} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                {photo.fileName ?? photo.name}
+              </div>
             ))}
           </div>
         </div>

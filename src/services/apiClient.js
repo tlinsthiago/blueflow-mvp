@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3333';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3333';
 const TOKEN_STORAGE_KEY = 'blueflow-auth-token';
 const USER_STORAGE_KEY = 'blueflow-current-user';
 
@@ -93,4 +93,30 @@ export async function apiRequest(path, options = {}) {
   }
 
   return payload;
+}
+
+export async function apiFileRequest(path, options = {}) {
+  const token = getStoredToken();
+  const headers = new Headers(options.headers ?? {});
+
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers,
+  });
+
+  if (response.status === 401) {
+    unauthorizedHandler?.();
+  }
+
+  if (!response.ok) {
+    const payload = await parseResponse(response);
+    const message = payload?.errors?.[0]?.message ?? 'NÃ£o foi possÃ­vel baixar o arquivo.';
+    throw new Error(message);
+  }
+
+  return response.blob();
 }

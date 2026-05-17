@@ -20,6 +20,7 @@ export function VisitFormPage() {
     saveVisit,
     uploadVisitFile,
     deleteVisitFile,
+    openVisitFile,
     canDeleteVisitFiles,
     domainLoading,
     domainErrors,
@@ -340,6 +341,13 @@ export function VisitFormPage() {
                   photos: (current.photos ?? []).filter((file) => file.id !== fileId),
                 }));
               }
+            }}
+            onOpen={async (file) => {
+              if (!existingVisit?.id) {
+                return;
+              }
+
+              await openVisitFile(existingVisit.id, file);
             }}
           />
         </SectionCard>
