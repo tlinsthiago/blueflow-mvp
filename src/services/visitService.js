@@ -27,6 +27,24 @@ export const visitService = {
       method: 'DELETE',
     });
   },
+  listFiles(id) {
+    return apiRequest(`${basePath}/${id}/files`);
+  },
+  uploadFile(id, { file, fileType }) {
+    const formData = new FormData();
+    formData.append('fileType', fileType);
+    formData.append('file', file);
+
+    return apiRequest(`${basePath}/${id}/files`, {
+      method: 'POST',
+      body: formData,
+    });
+  },
+  deleteFile(id, fileId) {
+    return apiRequest(`${basePath}/${id}/files/${fileId}`, {
+      method: 'DELETE',
+    });
+  },
   generateReport(id) {
     return apiRequest(`${basePath}/${id}/generate-report`, {
       method: 'POST',

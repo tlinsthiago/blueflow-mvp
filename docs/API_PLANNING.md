@@ -70,6 +70,9 @@ Regra de integridade:
 - `POST /visits`
 - `PUT /visits/:id`
 - `DELETE /visits/:id`
+- `GET /visits/:id/files`
+- `POST /visits/:id/files`
+- `DELETE /visits/:id/files/:fileId`
 
 Filtros:
 - `condominiumId`
@@ -84,11 +87,24 @@ Filtros:
 Permissões:
 - `admin` e `manager`: CRUD completo.
 - `collaborator`: visualizar, criar e editar; não pode excluir.
+- arquivos: `admin` e `manager` enviam, listam e excluem; `collaborator` envia e lista, mas não exclui.
 
 Regras:
 - não criar ou editar visita com condomínio inexistente;
 - não criar ou editar visita com técnico inexistente;
 - checklist básico pode ser enviado junto da visita.
+- upload usa `multipart/form-data` com campo `file` e `fileType`;
+- arquivos são armazenados no Vercel Blob;
+- o banco salva apenas metadados do arquivo;
+- limite atual de upload: 10 MB;
+- tipos permitidos: imagens e PDF.
+
+Tipos aceitos em `fileType`:
+- `reservoir_photo`
+- `pump_photo`
+- `electrical_panel_photo`
+- `signed_acceptance_term`
+- `other`
 
 ## Planejado
 ### Company
@@ -99,7 +115,6 @@ Permissão planejada:
 - somente `admin` e `manager`.
 
 ### Visits - Próximas extensões
-- `POST /visits/:id/photos`
 - `POST /visits/:id/generate-report`
 
 ### Reports
@@ -123,15 +138,22 @@ Permissão planejada:
 - somente `admin` e `manager`.
 
 ### Uploads
+Uploads específicos de Visitas já existem em `/visits/:id/files`.
+
+Endpoints genéricos ainda planejados:
 - `POST /uploads`
 - `GET /uploads/:id`
 - `DELETE /uploads/:id`
 
-Storage planejado:
-- Vercel Blob ou storage externo equivalente.
+Storage atual para Visitas:
+- Vercel Blob.
 
 Categorias previstas:
-- `visit-photo`
+- `reservoir_photo`
+- `pump_photo`
+- `electrical_panel_photo`
+- `signed_acceptance_term`
+- `other`
 - `contract-signed`
 - `report-attachment`
 
@@ -207,7 +229,6 @@ O frontend já consome:
 - `authService`;
 - `condominiumService`;
 - `technicianService`.
-
-O backend de Visitas já existe, mas o frontend ainda não foi integrado nesta etapa.
+- `visitService`, incluindo anexos reais de visitas.
 
 Services de Contratos e Relatórios já existem como estrutura base, mas ainda não estão conectados a endpoints implementados.

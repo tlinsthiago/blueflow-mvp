@@ -19,9 +19,10 @@ Persistência real já usada pela aplicação:
 - usuários;
 - condomínios;
 - técnicos;
-- visitas e checklist operacional no backend.
+- visitas e checklist operacional;
+- arquivos de visitas com metadados no PostgreSQL e conteúdo no Vercel Blob.
 
-Visitas ainda não foram integradas ao frontend. Relatórios, Contratos, Empresa e Uploads ainda não possuem fluxo completo integrado.
+Relatórios, Contratos e Empresa ainda não possuem fluxo completo integrado.
 
 ## Perfis
 ### UserRole
@@ -133,12 +134,14 @@ Relacionamentos:
 - pertence a `Technician`;
 - possui muitos `VisitChecklistItem`;
 - possui muitas `VisitPhoto`;
+- possui muitos `File`;
 - pode possuir um `Report`.
 
 Status:
 - endpoints backend implementados;
-- integração frontend ainda pendente;
-- uploads e relatórios ainda pendentes.
+- integração frontend implementada;
+- uploads de arquivos de visita implementados com Vercel Blob;
+- relatórios ainda pendentes.
 
 ### VisitChecklistItem
 - `id`
@@ -150,7 +153,7 @@ Status:
 Status:
 - modelado;
 - persistido junto com Visitas no backend;
-- integração frontend ainda pendente.
+- integrado ao frontend.
 
 ### VisitPhoto
 - `id`
@@ -161,8 +164,8 @@ Status:
 - `createdAt`
 
 Status:
-- modelado;
-- upload/storage ainda pendente.
+- legado/modelado;
+- upload real atual usa `File` vinculado à visita.
 
 ### Report
 - `id`
@@ -207,22 +210,34 @@ Status:
 
 ### File
 - `id`
+- `visitId`
 - `fileName`
+- `fileType`
 - `mimeType`
 - `storageKey`
+- `url`
+- `size`
+- `uploadedAt`
+- `uploadedBy`
 - `publicUrl`
 - `sizeBytes`
 - `category`
 - `createdAt`
 
+Uso atual:
+- foto do reservatório;
+- foto da bomba;
+- foto do quadro;
+- termo assinado de visita.
+
 Uso planejado:
-- fotos de visita;
 - contratos assinados;
 - anexos de relatório.
 
 Status:
-- modelado;
-- upload/storage ainda pendente.
+- upload de arquivos de Visitas implementado com Vercel Blob;
+- o banco salva apenas metadados;
+- nenhum arquivo é salvo no PostgreSQL ou filesystem da Vercel.
 
 ## Regras de Integridade
 Implementadas no backend:
@@ -243,6 +258,13 @@ Implementadas no backend:
 - `normal`
 - `attention`
 - `critical`
+
+### FileType
+- `reservoir_photo`
+- `pump_photo`
+- `electrical_panel_photo`
+- `signed_acceptance_term`
+- `other`
 
 Planejadas:
 - soft delete;

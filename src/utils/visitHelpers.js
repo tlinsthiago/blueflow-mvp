@@ -27,6 +27,7 @@ export function createEmptyVisit() {
     improvements: '',
     installationLocation: '',
     acceptanceNotes: '',
+    files: [],
     photos: [],
     notifications: {
       whatsapp: true,
@@ -84,6 +85,8 @@ export function normalizeVisit(rawVisit) {
     },
     installationLocation: rawVisit.installationLocation ?? '',
     acceptanceNotes: rawVisit.acceptanceNotes ?? '',
+    files: rawVisit.files ?? [],
+    photos: rawVisit.photos ?? [],
     notifications: {
       ...createEmptyVisit().notifications,
       ...rawVisit.notifications,

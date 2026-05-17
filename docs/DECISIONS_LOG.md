@@ -177,7 +177,7 @@ Aceita como decisão histórica, não recomendada para V1
 Armazenar fotos e contratos assinados como base64 no estado local.
 
 ### Revisão atual
-Uploads ainda não foram implementados na V1. A direção definida é usar Vercel Blob ou storage externo equivalente, com metadados na entidade `File`.
+Uploads de Visitas foram implementados na V1 com Vercel Blob. A regra permanece: não salvar base64, bytes no PostgreSQL ou arquivos no filesystem da Vercel. O banco guarda apenas metadados na entidade `File`.
 
 ---
 
@@ -294,10 +294,13 @@ Perfis:
 
 ## DEC-016: Upload futuro em Vercel Blob ou equivalente
 ### Status
-Aceita
+Aceita como decisão histórica, revisada na V1
 
 ### Decisão
 Não implementar upload na base inicial. Preparar o modelo `File` para metadados e usar futuramente Vercel Blob ou storage externo equivalente.
+
+### Revisão atual
+Uploads de arquivos de Visitas foram implementados com Vercel Blob. Uploads de Contratos, Relatórios e demais anexos continuam planejados.
 
 ### Consequências
 **Positivas**
@@ -305,7 +308,7 @@ Não implementar upload na base inicial. Preparar o modelo `File` para metadados
 - mantém caminho claro para fotos, contratos assinados e anexos.
 
 **Negativas**
-- módulos que dependem de arquivo ainda não estão prontos para produção.
+- módulos de Contratos e Relatórios que dependem de arquivo ainda não estão prontos para produção.
 
 ---
 
@@ -418,7 +421,6 @@ Enums:
 - mantém checklist junto da visita em uma transação.
 
 **Negativas**
-- uploads de fotos ainda não foram implementados;
 - geração de relatório ainda não foi implementada.
 
 ---
@@ -433,7 +435,7 @@ Integrar `VisitsPage` e `VisitFormPage` aos endpoints reais de Visitas, mantendo
 ### Regras
 - `admin` e `manager`: criar, editar e excluir.
 - `collaborator`: visualizar, criar e editar; não excluir.
-- Fotos, uploads e relatórios continuam fora do escopo desta etapa.
+- Relatórios continuam fora do escopo desta etapa.
 
 ### Consequências
 **Positivas**
@@ -442,7 +444,7 @@ Integrar `VisitsPage` e `VisitFormPage` aos endpoints reais de Visitas, mantendo
 - a operação técnica principal já usa banco real.
 
 **Negativas**
-- campos de fotos/notificações/relatórios permanecem planejados;
+- relatórios permanecem planejados;
 - ainda há mapeamento temporário entre labels em português da UI e enums em inglês da API.
 
 ---
@@ -466,13 +468,13 @@ Campos adicionados:
 - O termo usa texto adaptado para F TEC AUTOMAÇÃO.
 - A impressão é feita via HTML no navegador.
 - Não há assinatura eletrônica.
-- Não há upload do termo assinado.
+- O upload do termo assinado foi implementado posteriormente como arquivo de Visita.
 
 ### Consequências
 **Positivas**
 - recupera um fluxo operacional importante removido na migração;
 - registra responsabilidade sobre equipamento e valor comercial;
-- prepara futura assinatura/upload do termo.
+- prepara futura assinatura eletrônica.
 
 **Negativas**
 - impressão HTML ainda não equivale a PDF oficial;
@@ -513,6 +515,52 @@ Variáveis recomendadas:
 **Negativas**
 - exige configurar dois projetos Vercel ou dois ambientes separados;
 - serverless requer atenção a conexões Prisma/PostgreSQL e tempo de cold start.
+
+---
+
+## DEC-024: Uploads de Visitas com Vercel Blob
+### Status
+Aceita
+
+### Decisão
+Implementar uploads reais no módulo de Visitas usando Vercel Blob para armazenar arquivos e Prisma/PostgreSQL apenas para metadados.
+
+Arquivos suportados:
+- `reservoir_photo`;
+- `pump_photo`;
+- `electrical_panel_photo`;
+- `signed_acceptance_term`;
+- `other`.
+
+Endpoints:
+- `GET /visits/:id/files`;
+- `POST /visits/:id/files`;
+- `DELETE /visits/:id/files/:fileId`.
+
+### Regras
+- `admin` e `manager`: upload, listagem e exclusão.
+- `collaborator`: upload e listagem, sem exclusão.
+- Limite atual: 10 MB por arquivo.
+- Mime types permitidos: imagens e PDF.
+- Não salvar base64.
+- Não salvar arquivo no PostgreSQL.
+- Não salvar arquivo no filesystem da Vercel.
+
+### Configuração
+O backend precisa da variável:
+- `BLOB_READ_WRITE_TOKEN`.
+
+### Consequências
+**Positivas**
+- elimina a abordagem local/base64 do MVP para Visitas;
+- permite uso real em produção serverless;
+- mantém metadados relacionais para auditoria futura;
+- prepara assinatura/upload documental sem acoplar bytes ao banco.
+
+**Negativas**
+- URLs públicas do Blob devem ser avaliadas futuramente caso haja requisito de privacidade;
+- ainda falta política de retenção, auditoria e antivírus;
+- uploads de Contratos e Relatórios continuam fora desta etapa.
 
 ---
 

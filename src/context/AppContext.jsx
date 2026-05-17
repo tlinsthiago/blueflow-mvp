@@ -73,6 +73,21 @@ const checklistStatusFromApi = {
   critical: 'Crítico',
 };
 
+function normalizeVisitFile(payload) {
+  return {
+    id: payload.id,
+    visitId: payload.visitId,
+    fileName: payload.fileName,
+    name: payload.fileName,
+    fileType: payload.fileType ?? payload.category ?? 'other',
+    mimeType: payload.mimeType,
+    size: payload.size ?? payload.sizeBytes ?? 0,
+    url: payload.url ?? payload.publicUrl,
+    uploadedAt: payload.uploadedAt ?? payload.createdAt,
+    uploadedBy: payload.uploadedBy ?? '',
+  };
+}
+
 function normalizeApiCondominium(payload) {
   return normalizeCondominium({
     ...payload,
@@ -131,7 +146,8 @@ function normalizeApiVisit(payload) {
     improvements: payload.improvementsSuggested ?? payload.improvements ?? '',
     installationLocation: payload.installationLocation ?? '',
     acceptanceNotes: payload.acceptanceNotes ?? '',
-    photos: [],
+    files: (payload.files ?? []).map(normalizeVisitFile),
+    photos: (payload.files ?? []).filter((file) => file.mimeType?.startsWith('image/')).map(normalizeVisitFile),
   });
 }
 
@@ -316,6 +332,9 @@ export function AppProvider({ children }) {
       canDeleteVisits() {
         return hasAnyRole(currentUser, fullAccessRoles);
       },
+      canDeleteVisitFiles() {
+        return hasAnyRole(currentUser, fullAccessRoles);
+      },
       loadCondominiums,
       loadTechnicians,
       loadVisits,
@@ -466,6 +485,53 @@ export function AppProvider({ children }) {
             reports: current.reports.filter((item) => item.visitId !== id),
           }));
           notify('success', 'Visita técnica excluída com sucesso.');
+          return true;
+        } catch (error) {
+          notify('error', error.message);
+          return false;
+        }
+      },
+      async uploadVisitFile(visitId, file, fileType) {
+        try {
+          const response = await visitService.uploadFile(visitId, { file, fileType });
+          const uploadedFile = normalizeVisitFile(response.data);
+          setDataState((current) => ({
+            ...current,
+            visits: current.visits.map((visit) =>
+              visit.id === visitId
+                ? {
+                    ...visit,
+                    files: [uploadedFile, ...(visit.files ?? [])],
+                    photos: uploadedFile.mimeType?.startsWith('image/')
+                      ? [uploadedFile, ...(visit.photos ?? [])]
+                      : visit.photos ?? [],
+                  }
+                : visit
+            ),
+          }));
+          notify('success', 'Arquivo anexado com sucesso.');
+          return uploadedFile;
+        } catch (error) {
+          notify('error', error.message);
+          throw error;
+        }
+      },
+      async deleteVisitFile(visitId, fileId) {
+        try {
+          await visitService.deleteFile(visitId, fileId);
+          setDataState((current) => ({
+            ...current,
+            visits: current.visits.map((visit) =>
+              visit.id === visitId
+                ? {
+                    ...visit,
+                    files: (visit.files ?? []).filter((file) => file.id !== fileId),
+                    photos: (visit.photos ?? []).filter((file) => file.id !== fileId),
+                  }
+                : visit
+            ),
+          }));
+          notify('success', 'Arquivo removido com sucesso.');
           return true;
         } catch (error) {
           notify('error', error.message);

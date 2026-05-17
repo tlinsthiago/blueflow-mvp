@@ -51,13 +51,13 @@ O sistema atende a operação da empresa **F TEC AUTOMAÇÃO**, centralizando:
 - CRUD real de Técnicos.
 - CRUD real de Visitas no backend e frontend.
 - Termo de instalação e aceite técnico imprimível em Visitas.
+- Upload real de arquivos de Visitas com Vercel Blob.
 - Entry point serverless do backend para Vercel.
 - Migrations Prisma.
 - Seed de usuários iniciais.
 
 ### Ainda Não Integrado
 - Empresa.
-- Fotos/uploads.
 - Relatórios.
 - Contratos.
 - Geração de PDF.
@@ -111,6 +111,9 @@ Não deve voltar a ser banco local.
 - `POST /visits`
 - `PUT /visits/:id`
 - `DELETE /visits/:id`
+- `GET /visits/:id/files`
+- `POST /visits/:id/files`
+- `DELETE /visits/:id/files/:fileId`
 
 ## 9. Regras Importantes
 - `admin` e `manager` podem escrever em Condomínios e Técnicos.
@@ -118,9 +121,11 @@ Não deve voltar a ser banco local.
 - Não excluir Condomínio com Visitas ou Contratos.
 - Não excluir Técnico com Visitas.
 - Contratos e Empresa devem permanecer restritos a `admin` e `manager`.
-- Uploads futuros devem usar Vercel Blob ou storage equivalente.
+- Uploads de Visitas usam Vercel Blob e exigem `BLOB_READ_WRITE_TOKEN` no backend.
+- O banco salva apenas metadados de arquivo; não salvar base64, bytes no PostgreSQL ou arquivos no filesystem da Vercel.
 - Frontend publicado deve usar `VITE_API_BASE_URL` apontando para a URL pública do backend.
 - Backend publicado deve ter `DATABASE_URL`, `JWT_SECRET` e `CORS_ORIGINS` configurados na Vercel.
+- Para uploads, backend publicado também deve ter `BLOB_READ_WRITE_TOKEN`.
 
 ## 10. Deploy
 Backend:
@@ -137,7 +142,7 @@ Frontend:
 1. Implementar e integrar `CompanySettings`.
 2. Implementar Relatórios vinculados a Visitas.
 3. Implementar Contratos via API com RBAC.
-4. Implementar uploads com `File` + storage externo.
+4. Implementar uploads de Contratos/Relatórios conforme necessidade.
 5. Avaliar React Query para server-state.
 6. Adicionar auditoria, soft delete e logs estruturados.
 

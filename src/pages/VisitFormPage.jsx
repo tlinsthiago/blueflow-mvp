@@ -4,6 +4,7 @@ import { FormField } from '../components/FormField';
 import { PageHeader } from '../components/PageHeader';
 import { ReportPreview } from '../components/ReportPreview';
 import { SectionCard } from '../components/SectionCard';
+import { VisitFileUploader } from '../components/VisitFileUploader';
 import { checklistStatuses, serviceTypes, visitStatuses } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
 import { formatInputDateTime } from '../utils/formatters';
@@ -12,7 +13,17 @@ import { createEmptyVisit, normalizeVisit } from '../utils/visitHelpers';
 export function VisitFormPage() {
   const { visitId } = useParams();
   const navigate = useNavigate();
-  const { condominiums, technicians, visits, saveVisit, domainLoading, domainErrors } = useAppContext();
+  const {
+    condominiums,
+    technicians,
+    visits,
+    saveVisit,
+    uploadVisitFile,
+    deleteVisitFile,
+    canDeleteVisitFiles,
+    domainLoading,
+    domainErrors,
+  } = useAppContext();
   const existingVisit = useMemo(() => visits.find((item) => item.id === visitId), [visitId, visits]);
   const [visit, setVisit] = useState(createEmptyVisit());
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,6 +41,7 @@ export function VisitFormPage() {
 
   const selectedCondominium = condominiums.find((item) => item.id === visit.condominiumId);
   const selectedTechnician = technicians.find((item) => item.id === visit.technicianId);
+  const canDeleteFiles = canDeleteVisitFiles();
 
   function updateChecklist(index, field, value) {
     setVisit((current) => ({
@@ -296,10 +308,40 @@ export function VisitFormPage() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Fotos e notificações" subtitle="Etapa planejada para a próxima fase do módulo.">
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-            Uploads de fotos e notificações reais ainda não foram integrados ao backend. Esta visita salvará apenas os dados operacionais e o checklist.
-          </div>
+        <SectionCard title="Fotos e termo assinado" subtitle="Anexos reais armazenados no Vercel Blob, com metadados persistidos no banco.">
+          <VisitFileUploader
+            files={visit.files ?? []}
+            disabled={!existingVisit?.id}
+            canDelete={canDeleteFiles}
+            onUpload={async (file, fileType) => {
+              if (!existingVisit?.id) {
+                return;
+              }
+
+              const uploadedFile = await uploadVisitFile(existingVisit.id, file, fileType);
+              setVisit((current) => ({
+                ...current,
+                files: [uploadedFile, ...(current.files ?? [])],
+                photos: uploadedFile.mimeType?.startsWith('image/')
+                  ? [uploadedFile, ...(current.photos ?? [])]
+                  : current.photos ?? [],
+              }));
+            }}
+            onDelete={async (fileId) => {
+              if (!existingVisit?.id) {
+                return;
+              }
+
+              const deleted = await deleteVisitFile(existingVisit.id, fileId);
+              if (deleted) {
+                setVisit((current) => ({
+                  ...current,
+                  files: (current.files ?? []).filter((file) => file.id !== fileId),
+                  photos: (current.photos ?? []).filter((file) => file.id !== fileId),
+                }));
+              }
+            }}
+          />
         </SectionCard>
 
         <SectionCard title="Pré-visualização do relatório" subtitle="Resumo do documento que poderá ser gerado e consultado no módulo de relatórios.">

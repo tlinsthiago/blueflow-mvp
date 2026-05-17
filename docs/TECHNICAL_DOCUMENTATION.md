@@ -29,9 +29,9 @@ O MVP original era frontend-only com `localStorage`. Na V1 atual, `localStorage`
 - Hash de senha com Argon2
 - Validação com Zod
 
-### Storage Futuro
-- Vercel Blob ou storage externo equivalente.
-- Uploads ainda não foram implementados.
+### Storage
+- Vercel Blob para arquivos de Visitas.
+- Uploads de Contratos, Relatórios e demais anexos ainda serão evoluídos por módulo.
 
 ## Estrutura de Pastas
 ### Frontend
@@ -130,12 +130,15 @@ Essa abordagem evita quebrar as páginas existentes enquanto a migração comple
 - `POST /visits`
 - `PUT /visits/:id`
 - `DELETE /visits/:id`
+- `GET /visits/:id/files`
+- `POST /visits/:id/files`
+- `DELETE /visits/:id/files/:fileId`
 
 Observação: endpoints de Visitas existem no backend, com checklist operacional básico, e o frontend já está integrado para listar, criar, editar e excluir conforme permissão.
 
 ## Endpoints Planejados
 - Empresa: `GET /company`, `PUT /company`.
-- Visitas: fotos e geração de relatório.
+- Visitas: geração de relatório.
 - Relatórios: listagem, detalhe, atualização, exclusão e download/PDF.
 - Contratos: CRUD, documento, impressão/PDF e upload de assinado.
 - Uploads: envio, consulta e remoção de arquivos.
@@ -152,6 +155,7 @@ Arquivos relevantes:
 Variáveis obrigatórias em produção:
 - `DATABASE_URL`: connection string do PostgreSQL Neon.
 - `JWT_SECRET`: segredo longo e privado para assinatura dos tokens.
+- `BLOB_READ_WRITE_TOKEN`: token do Vercel Blob usado pelos uploads de Visitas.
 
 Variáveis recomendadas:
 - `JWT_EXPIRES_IN`: tempo de expiração do token, por exemplo `1h`.
@@ -208,8 +212,31 @@ Persistência operacional real implementada até agora:
 - visitas;
 - itens de checklist de visita.
 - campos de aceite técnico da visita.
+- arquivos de Visitas, com conteúdo no Vercel Blob e metadados em `File`.
 
-Empresa, Relatórios, Contratos, Arquivos e Uploads estão modelados ou planejados, mas os endpoints e a integração frontend ainda não foram concluídos.
+Empresa, Relatórios e Contratos estão modelados ou planejados, mas os endpoints e a integração frontend ainda não foram concluídos.
+
+## Uploads de Visitas
+Implementado com:
+- `@fastify/multipart` para receber `multipart/form-data`;
+- `@vercel/blob` para armazenar o conteúdo dos arquivos;
+- Prisma `File` para salvar metadados.
+
+Arquivos suportados:
+- foto do reservatório: `reservoir_photo`;
+- foto da bomba: `pump_photo`;
+- foto do quadro: `electrical_panel_photo`;
+- termo assinado: `signed_acceptance_term`;
+- outros: `other`.
+
+Regras:
+- não salvar base64;
+- não salvar arquivo no PostgreSQL;
+- não salvar arquivo no filesystem da Vercel;
+- limite atual de 10 MB por arquivo;
+- mime types permitidos: imagens e PDF;
+- `admin` e `manager`: enviam, listam e excluem;
+- `collaborator`: envia e lista, mas não exclui.
 
 ## Resposta Padrão da API
 ```json
@@ -234,11 +261,10 @@ O backend usa Zod para validar payloads e parâmetros em rotas novas.
 
 ## Riscos Técnicos Atuais
 - Relatórios, contratos e empresa ainda não persistem via API.
-- Uploads/fotos de visitas ainda não foram integrados.
-- Assinatura eletrônica e upload de termo assinado ainda não foram implementados.
+- Uploads de Contratos e Relatórios ainda não foram integrados.
+- Assinatura eletrônica ainda não foi implementada.
 - `AppContext` ainda contém compatibilidade temporária para módulos não migrados.
 - Falta React Query ou camada dedicada de cache server-state.
-- Uploads ainda não foram migrados para storage externo.
 - Tokens são armazenados em `localStorage`; no futuro pode ser desejável usar cookie HTTP-only/refresh token.
 - Falta auditoria de ações.
 - Falta estratégia de soft delete.
@@ -247,10 +273,9 @@ O backend usa Zod para validar payloads e parâmetros em rotas novas.
 
 ## Próximas Etapas Técnicas
 1. Integrar Empresa ao backend com RBAC.
-2. Implementar fotos com storage externo.
-3. Implementar Relatórios persistidos e geração de PDF.
-4. Implementar Contratos persistidos e upload de assinado.
-5. Evoluir aceite técnico para assinatura eletrônica ou upload do termo assinado.
-6. Avaliar React Query para server-state.
-7. Adicionar auditoria, logs estruturados e soft delete.
-8. Preparar multitenancy para SaaS.
+2. Implementar Relatórios persistidos e geração de PDF.
+3. Implementar Contratos persistidos e upload de assinado.
+4. Evoluir aceite técnico para assinatura eletrônica.
+5. Avaliar React Query para server-state.
+6. Adicionar auditoria, logs estruturados e soft delete.
+7. Preparar multitenancy para SaaS.

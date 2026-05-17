@@ -15,6 +15,7 @@ O produto nasceu como um MVP frontend-only, com dados em `localStorage`, para va
 - Gestão de Condomínios integrada ao backend.
 - Gestão de Técnicos integrada ao backend.
 - Gestão de Visitas integrada ao backend, com checklist e aceite técnico.
+- Upload real de fotos e termo assinado em Visitas usando Vercel Blob.
 - Páginas existentes para Painel, Relatórios, Contratos e Empresa.
 - Componentes reutilizáveis para filtros, cards, modais, ações, upload local e prévias.
 
@@ -23,7 +24,7 @@ O produto nasceu como um MVP frontend-only, com dados em `localStorage`, para va
 - Relatórios ainda não persistem no banco.
 - Contratos ainda não persistem no banco.
 - Empresa/Configuração da empresa ainda não persiste no banco.
-- Uploads ainda não foram migrados para storage externo.
+- Uploads de Visitas já usam storage externo; uploads de Contratos e Relatórios ainda não foram implementados.
 - Geração de PDF real ainda não foi implementada.
 - Envio real de e-mail/WhatsApp ainda não foi implementado.
 
@@ -107,11 +108,12 @@ Funcionalidades:
 - local da instalação;
 - observações do aceite;
 - prévia e impressão de Termo de Instalação, Aceite Técnico e Responsabilidade Operacional.
+- upload por categoria: foto do reservatório, foto da bomba, foto do quadro e termo assinado;
+- visualização dos anexos da visita;
+- exclusão de anexos por `admin` e `manager`.
 
 Ainda planejado:
-- upload de fotos;
 - assinatura eletrônica;
-- upload do termo assinado;
 - geração de relatório pelo backend.
 
 ### Relatórios
@@ -146,6 +148,7 @@ Planejado:
 - Uma Visita pode gerar um Relatório.
 - Uma Visita possui itens de checklist.
 - Uma Visita pode possuir fotos.
+- Arquivos de Visita são armazenados no Vercel Blob; o banco guarda apenas metadados.
 - Um Contrato pertence a um Condomínio.
 - Não excluir Condomínio com Visitas ou Contratos vinculados.
 - Não excluir Técnico com Visitas vinculadas.
