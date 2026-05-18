@@ -159,7 +159,9 @@ export function AcceptanceTermPreview({ visit, condominium, technician }) {
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">F TEC AUTOMAÇÃO</p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-900">Termo de Instalação, Aceite Técnico e Responsabilidade Operacional</h2>
+          <h2 className="mt-2 text-xl font-semibold text-slate-900">
+            Termo de Instalação, Aceite Técnico e Responsabilidade Operacional
+          </h2>
           <p className="mt-1 text-sm text-slate-500">{condominium.name}</p>
         </div>
         <button
@@ -185,21 +187,25 @@ export function AcceptanceTermPreview({ visit, condominium, technician }) {
         </div>
         <div className="rounded-2xl bg-slate-50 p-4">
           <p className="text-sm text-slate-500">Responsabilidade sobre equipamento</p>
-          <p className="mt-1 text-sm text-slate-600">Local: {visit.installationLocation || condominium.address || 'Não informado'}</p>
+          <p className="mt-1 text-sm text-slate-600">
+            Local: {visit.installationLocation || condominium.address || 'Não informado'}
+          </p>
           <p className="text-sm text-slate-600">Valor comercial: {formatCurrency(visit.responsible?.equipmentValue || 0)}</p>
         </div>
         <div className="rounded-2xl bg-slate-50 p-4">
           <p className="text-sm text-slate-500">Aceite técnico</p>
           <p className="mt-1 font-semibold text-slate-900">{visit.responsible?.acknowledged ? 'Confirmado' : 'Pendente'}</p>
-          <p className="mt-1 text-sm text-slate-600">{responsibleName} - {responsibleRole}</p>
+          <p className="mt-1 text-sm text-slate-600">
+            {responsibleName} - {responsibleRole}
+          </p>
         </div>
       </div>
 
       <div className="rounded-2xl border border-slate-200 p-4 text-sm text-slate-600">
         <p>
-          O responsável declara ciência sobre instalação, funcionamento, boas práticas de uso e responsabilidade
-          operacional do equipamento, conforme atendimento realizado pela F TEC AUTOMAÇÃO. Assinatura eletrônica e upload
-          do termo assinado ainda não estão implementados nesta etapa.
+          O responsável declara ciência sobre instalação, funcionamento, boas práticas de uso e responsabilidade operacional
+          do equipamento, conforme atendimento realizado pela F TEC AUTOMAÇÃO. O termo assinado pode ser anexado à visita
+          para consulta operacional.
         </p>
         <p className="mt-3">
           <strong>Observações:</strong> {visit.acceptanceNotes || 'Sem observações adicionais.'}

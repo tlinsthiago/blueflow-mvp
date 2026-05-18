@@ -38,7 +38,7 @@ export function LoginPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-300">Acesso seguro</p>
           <h1 className="mt-4 text-4xl font-semibold">Gestão das operações hidráulicas em um só lugar.</h1>
           <p className="mt-4 max-w-xl text-sm text-slate-300">
-            Acesse a área operacional com as credenciais cadastradas no backend BlueFlow.
+            Acesse a área operacional da F TEC AUTOMAÇÃO com seu usuário e senha.
           </p>
           <div className="mt-8 rounded-[2rem] bg-white/5 p-5">
             <div className="flex items-center gap-3">
@@ -46,8 +46,8 @@ export function LoginPage() {
                 <ShieldCheck size={22} />
               </div>
               <div>
-                <p className="font-semibold">Autenticação real habilitada</p>
-                <p className="text-sm text-slate-300">Sessão validada por JWT e perfil de acesso.</p>
+                <p className="font-semibold">Acesso protegido</p>
+                <p className="text-sm text-slate-300">Permissões aplicadas conforme o perfil do usuário.</p>
               </div>
             </div>
           </div>

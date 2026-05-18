@@ -158,7 +158,7 @@ export function CondominiumsPage() {
           title="Condomínios cadastrados"
           subtitle={
             domainLoading.condominiums
-              ? 'Carregando condomínios do banco de dados...'
+              ? 'Carregando condomínios...'
               : `${filteredCondominiums.length} registro(s) encontrado(s) para os filtros aplicados.`
           }
         >

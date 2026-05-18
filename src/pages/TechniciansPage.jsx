@@ -123,7 +123,7 @@ export function TechniciansPage() {
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <SectionCard
           title="Equipe técnica"
-          subtitle={domainLoading.technicians ? 'Carregando técnicos do banco de dados...' : `${filteredTechnicians.length} registro(s) encontrado(s).`}
+          subtitle={domainLoading.technicians ? 'Carregando técnicos...' : `${filteredTechnicians.length} registro(s) encontrado(s).`}
         >
           {domainLoading.technicians ? (
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-600">

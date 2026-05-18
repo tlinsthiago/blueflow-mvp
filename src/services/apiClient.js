@@ -114,7 +114,7 @@ export async function apiFileRequest(path, options = {}) {
 
   if (!response.ok) {
     const payload = await parseResponse(response);
-    const message = payload?.errors?.[0]?.message ?? 'NÃ£o foi possÃ­vel baixar o arquivo.';
+    const message = payload?.errors?.[0]?.message ?? 'Não foi possível baixar o arquivo.';
     throw new Error(message);
   }
 

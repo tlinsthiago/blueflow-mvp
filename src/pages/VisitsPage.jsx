@@ -146,7 +146,7 @@ export function VisitsPage() {
 
       <SectionCard
         title="Histórico de visitas técnicas"
-        subtitle={domainLoading.visits ? 'Carregando visitas do banco de dados...' : `${filteredVisits.length} registro(s) encontrado(s).`}
+        subtitle={domainLoading.visits ? 'Carregando visitas...' : `${filteredVisits.length} registro(s) encontrado(s).`}
       >
         {domainLoading.visits ? (
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-600">

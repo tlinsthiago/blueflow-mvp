@@ -51,7 +51,7 @@ export function AppShell() {
       <div className="mx-auto flex max-w-7xl gap-6 px-4 pb-24 pt-4 lg:px-6 lg:pb-6">
         <aside className="hidden w-72 shrink-0 rounded-[2rem] bg-white p-5 shadow-soft lg:flex lg:flex-col">
           <div className="rounded-3xl bg-hero-grid p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">BlueFlow</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">F TEC AUTOMAÇÃO</p>
             <h1 className="mt-2 text-2xl font-semibold text-slate-900">Gestão Hidráulica</h1>
             <p className="mt-2 text-sm text-slate-600">
               Operação de manutenção hidráulica para condomínios residenciais.

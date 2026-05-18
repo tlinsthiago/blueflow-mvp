@@ -74,14 +74,14 @@ export function DashboardPage() {
     <div className="space-y-8">
       <PageHeader
         title="Painel"
-        description="VisÃ£o geral real da operaÃ§Ã£o mensal de manutenÃ§Ã£o hidrÃ¡ulica preventiva."
+        description="Visão geral da operação mensal de manutenção hidráulica preventiva."
         actions={
           <Link
             to="/app/visits/new"
             className="inline-flex items-center gap-2 rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-500"
           >
             <PlusCircle size={18} />
-            Nova visita tÃ©cnica
+            Nova visita técnica
           </Link>
         }
       />
@@ -100,28 +100,28 @@ export function DashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="CondomÃ­nios ativos"
+          label="Carteira ativa"
           value={totals.activeCondominiums}
           tone="blue"
           icon={Building2}
-          helper="Carteira operacional ativa"
+          helper="Condomínios com status ativo"
         />
         <StatCard
-          label="TÃ©cnicos ativos"
+          label="Equipe ativa"
           value={totals.activeTechnicians}
           tone="soft"
           icon={UsersRound}
-          helper="Equipe disponÃ­vel"
+          helper="Técnicos disponíveis"
         />
         <StatCard
-          label="Visitas no mÃªs"
+          label="Visitas no mês"
           value={totals.visitsThisMonth}
           tone="soft"
           icon={TimerReset}
-          helper="Atendimentos do perÃ­odo atual"
+          helper="Atendimentos do período atual"
         />
         <StatCard
-          label="ConcluÃ­das no mÃªs"
+          label="Concluídas no mês"
           value={totals.completedVisitsThisMonth}
           tone="emerald"
           icon={CheckCircle2}
@@ -142,14 +142,14 @@ export function DashboardPage() {
           helper="Agenda futura"
         />
         <StatCard
-          label="Checklist crÃ­tico"
+          label="Itens críticos"
           value={totals.criticalChecklistItems}
           tone="gray"
           icon={AlertTriangle}
-          helper="Itens em estado crÃ­tico"
+          helper="Checklist em estado crítico"
         />
         <StatCard
-          label="Checklist atenÃ§Ã£o"
+          label="Itens em atenção"
           value={totals.attentionChecklistItems}
           tone="soft"
           icon={AlertTriangle}
@@ -159,8 +159,8 @@ export function DashboardPage() {
 
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <SectionCard
-          title="CondomÃ­nios pendentes no mÃªs"
-          subtitle={`${totals.condominiumsWithoutCompletedVisit} condomÃ­nio(s) ativo(s) sem visita concluÃ­da no mÃªs atual.`}
+          title="Condomínios pendentes no mês"
+          subtitle={`${totals.condominiumsWithoutCompletedVisit} condomínio(s) ativo(s) sem visita concluída no mês atual.`}
         >
           {pendingCondominiums.length ? (
             <div className="space-y-3">
@@ -172,7 +172,7 @@ export function DashboardPage() {
                   <div className="min-w-0">
                     <h3 className="font-semibold text-slate-900">{condo.name}</h3>
                     <p className="text-sm text-slate-600">
-                      {[condo.city, condo.state].filter(Boolean).join('/')} {condo.monthlyWindow ? `Â· ${condo.monthlyWindow}` : ''}
+                      {[condo.city, condo.state].filter(Boolean).join('/')} {condo.monthlyWindow ? `· ${condo.monthlyWindow}` : ''}
                     </p>
                   </div>
                   <StatusBadge value="Pendente" />
@@ -181,12 +181,12 @@ export function DashboardPage() {
             </div>
           ) : (
             <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-              Todos os condomÃ­nios ativos possuem visita concluÃ­da no mÃªs.
+              Todos os condomínios ativos possuem visita concluída no mês.
             </div>
           )}
         </SectionCard>
 
-        <SectionCard title="Ãšltimas visitas realizadas" subtitle="Atendimentos concluÃ­dos mais recentes registrados no backend.">
+        <SectionCard title="Últimas visitas realizadas" subtitle="Atendimentos concluídos mais recentes.">
           {latestVisits.length ? (
             <div className="space-y-3">
               {latestVisits.map((visit) => (
@@ -202,7 +202,7 @@ export function DashboardPage() {
             </div>
           ) : (
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-              Nenhuma visita concluÃ­da encontrada.
+              Nenhuma visita concluída encontrada.
             </div>
           )}
         </SectionCard>

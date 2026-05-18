@@ -359,7 +359,7 @@ export function AppProvider({ children }) {
             ...payload,
           },
         }));
-        notify('success', 'Dados da empresa atualizados no cache local da sessão.');
+        notify('success', 'Dados da empresa atualizados com sucesso.');
       },
       async createCondominium(payload) {
         try {
@@ -582,7 +582,7 @@ export function AppProvider({ children }) {
             ...current.reports,
           ],
         }));
-        notify('success', 'Relatório gerado no cache local da sessão.');
+        notify('success', 'Relatório gerado com sucesso.');
         return reportId;
       },
       updateReport(id) {
@@ -592,7 +592,7 @@ export function AppProvider({ children }) {
             item.id === id ? { ...item, updatedAt: new Date().toISOString() } : item
           ),
         }));
-        notify('success', 'Relatório atualizado no cache local da sessão.');
+        notify('success', 'Relatório atualizado com sucesso.');
         return true;
       },
       deleteReport(id) {
@@ -600,7 +600,7 @@ export function AppProvider({ children }) {
           ...current,
           reports: current.reports.filter((item) => item.id !== id),
         }));
-        notify('success', 'Relatório excluído do cache local da sessão.');
+        notify('success', 'Relatório excluído com sucesso.');
         return true;
       },
       createContract(payload) {
@@ -616,7 +616,7 @@ export function AppProvider({ children }) {
             ...current.contracts,
           ],
         }));
-        notify('success', 'Contrato cadastrado no cache local da sessão.');
+        notify('success', 'Contrato cadastrado com sucesso.');
       },
       updateContract(id, payload) {
         setDataState((current) => ({
@@ -631,14 +631,14 @@ export function AppProvider({ children }) {
               : item
           ),
         }));
-        notify('success', 'Contrato atualizado no cache local da sessão.');
+        notify('success', 'Contrato atualizado com sucesso.');
       },
       deleteContract(id) {
         setDataState((current) => ({
           ...current,
           contracts: current.contracts.filter((item) => item.id !== id),
         }));
-        notify('success', 'Contrato excluído do cache local da sessão.');
+        notify('success', 'Contrato excluído com sucesso.');
         return true;
       },
     }),
