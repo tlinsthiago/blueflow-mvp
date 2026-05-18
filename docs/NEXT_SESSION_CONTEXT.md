@@ -47,6 +47,7 @@ O sistema atende a operação da empresa **F TEC AUTOMAÇÃO**, centralizando:
 - Interceptor de `401` no frontend.
 - RBAC frontend e backend.
 - Menu filtrado por perfil.
+- Dashboard operacional real via `GET /dashboard/summary`.
 - CRUD real de Condomínios.
 - CRUD real de Técnicos.
 - CRUD real de Visitas no backend e frontend.
@@ -90,6 +91,9 @@ Não deve voltar a ser banco local.
 ### Auth
 - `POST /auth/login`
 - `GET /auth/me`
+
+### Dashboard
+- `GET /dashboard/summary`
 
 ### Condomínios
 - `GET /condominiums`
@@ -143,8 +147,9 @@ Frontend:
 2. Implementar Relatórios vinculados a Visitas.
 3. Implementar Contratos via API com RBAC.
 4. Implementar uploads de Contratos/Relatórios conforme necessidade.
-5. Avaliar React Query para server-state.
-6. Adicionar auditoria, soft delete e logs estruturados.
+5. Evoluir Dashboard com gráficos simples e filtros por período.
+6. Avaliar React Query para server-state.
+7. Adicionar auditoria, soft delete e logs estruturados.
 
 ## 12. Instruções Para Futuras IAs
 - Não documentar funcionalidades como implementadas sem verificar código.

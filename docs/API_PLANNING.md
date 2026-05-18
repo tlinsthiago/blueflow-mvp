@@ -32,6 +32,24 @@ Contratos e Empresa devem ser restritos a `admin` e `manager` quando seus endpoi
 
 Observação: `refresh token` e `logout` server-side ainda não foram implementados.
 
+### Dashboard
+- `GET /dashboard/summary`
+
+Retorna:
+- total de condomínios ativos;
+- total de técnicos ativos;
+- visitas do mês atual;
+- visitas pendentes;
+- visitas concluídas no mês;
+- visitas agendadas;
+- checklist com status `critical`;
+- checklist com status `attention`;
+- condomínios ativos sem visita concluída no mês;
+- últimas visitas concluídas.
+
+Permissão:
+- `admin`, `manager` e `collaborator`.
+
 ### Condominiums
 - `GET /condominiums`
 - `GET /condominiums/:id`

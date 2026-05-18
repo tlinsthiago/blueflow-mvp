@@ -4,6 +4,7 @@ import multipart from '@fastify/multipart';
 import Fastify from 'fastify';
 import { authRoutes } from './routes/auth.js';
 import { condominiumRoutes } from './routes/condominiums.js';
+import { dashboardRoutes } from './routes/dashboard.js';
 import { healthRoutes } from './routes/health.js';
 import { technicianRoutes } from './routes/technicians.js';
 import { visitRoutes } from './routes/visits.js';
@@ -140,6 +141,7 @@ export function buildApp(options = {}) {
 
   app.register(healthRoutes);
   app.register(authRoutes, { prefix: '/auth' });
+  app.register(dashboardRoutes, { prefix: '/dashboard' });
   app.register(condominiumRoutes, { prefix: '/condominiums' });
   app.register(technicianRoutes, { prefix: '/technicians' });
   app.register(visitRoutes, { prefix: '/visits' });

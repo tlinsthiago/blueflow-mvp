@@ -566,6 +566,44 @@ O backend precisa da variável:
 
 ---
 
+## DEC-025: Dashboard operacional com agregações do backend
+### Status
+Aceita
+
+### Decisão
+Implementar o Dashboard operacional com endpoint dedicado no backend:
+- `GET /dashboard/summary`.
+
+O frontend deixa de calcular os indicadores principais a partir de mocks/cache local e passa a consumir agregações reais da API.
+
+### Escopo
+Indicadores implementados:
+- condomínios ativos;
+- técnicos ativos;
+- visitas do mês;
+- visitas pendentes;
+- visitas concluídas no mês;
+- visitas agendadas;
+- checklist crítico;
+- checklist em atenção;
+- condomínios ativos sem visita concluída no mês;
+- últimas visitas concluídas.
+
+### Permissões
+- `admin`, `manager` e `collaborator`.
+
+### Consequências
+**Positivas**
+- painel passa a refletir dados persistidos em PostgreSQL;
+- reduz dependência de cálculos locais no frontend;
+- cria base para filtros e gráficos futuros.
+
+**Negativas**
+- ainda não há filtros por período na UI;
+- indicadores são agregações operacionais simples, sem gráficos complexos.
+
+---
+
 ## Decisões Futuras Esperadas
 - Estratégia de refresh token ou sessão mais robusta.
 - Adoção ou não de React Query para server-state.

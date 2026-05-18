@@ -12,6 +12,7 @@ O produto nasceu como um MVP frontend-only, com dados em `localStorage`, para va
 - Bootstrap de sessão com token JWT.
 - Controle de acesso por perfil.
 - Layout autenticado com menu filtrado por permissão.
+- Dashboard operacional com indicadores reais do backend.
 - Gestão de Condomínios integrada ao backend.
 - Gestão de Técnicos integrada ao backend.
 - Gestão de Visitas integrada ao backend, com checklist e aceite técnico.
@@ -71,6 +72,23 @@ Os perfis internos atuais são:
 6. Em caso de token inválido ou expirado, o usuário é deslogado automaticamente.
 
 ## Módulos Funcionais
+### Dashboard
+Implementado com dados reais do backend.
+
+Funcionalidades:
+- total de condomínios ativos;
+- total de técnicos ativos;
+- visitas do mês atual;
+- visitas pendentes;
+- visitas concluídas no mês;
+- visitas agendadas;
+- itens de checklist críticos e em atenção;
+- alerta de condomínios sem visita concluída no mês;
+- últimas visitas realizadas.
+
+Permissão:
+- disponível para `admin`, `manager` e `collaborator`.
+
 ### Condomínios
 Implementado com persistência real via API.
 

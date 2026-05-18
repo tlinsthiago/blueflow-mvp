@@ -110,6 +110,9 @@ Essa abordagem evita quebrar as páginas existentes enquanto a migração comple
 - `POST /auth/login`
 - `GET /auth/me`
 
+### Dashboard
+- `GET /dashboard/summary`
+
 ### Condomínios
 - `GET /condominiums`
 - `GET /condominiums/:id`
@@ -214,6 +217,7 @@ Persistência operacional real implementada até agora:
 - itens de checklist de visita.
 - campos de aceite técnico da visita.
 - arquivos de Visitas, com conteúdo no Vercel Blob e metadados em `File`.
+- indicadores operacionais do Dashboard via agregações do backend.
 
 Empresa, Relatórios e Contratos estão modelados ou planejados, mas os endpoints e a integração frontend ainda não foram concluídos.
 
@@ -279,6 +283,7 @@ O backend usa Zod para validar payloads e parâmetros em rotas novas.
 2. Implementar Relatórios persistidos e geração de PDF.
 3. Implementar Contratos persistidos e upload de assinado.
 4. Evoluir aceite técnico para assinatura eletrônica.
-5. Avaliar React Query para server-state.
-6. Adicionar auditoria, logs estruturados e soft delete.
-7. Preparar multitenancy para SaaS.
+5. Evoluir Dashboard com gráficos e filtros por período.
+6. Avaliar React Query para server-state.
+7. Adicionar auditoria, logs estruturados e soft delete.
+8. Preparar multitenancy para SaaS.
