@@ -3,7 +3,7 @@
 ## Visão Geral
 `BlueFlow Gestão Hidráulica` é uma aplicação web para gestão operacional, técnica e contratual de serviços de manutenção hidráulica em condomínios.
 
-O produto nasceu como um MVP frontend-only, com dados em `localStorage`, para validar navegação, formulários, relatórios e contratos. A arquitetura atual já evoluiu para uma V1 fullstack parcial, com frontend React, backend Fastify, autenticação JWT, RBAC e persistência PostgreSQL para Condomínios e Técnicos.
+O produto nasceu como um MVP frontend-only, com dados em `localStorage`, para validar navegação, formulários, relatórios e contratos. A arquitetura atual já evoluiu para uma V1 fullstack parcial, com frontend React, backend Fastify, autenticação JWT, RBAC e persistência PostgreSQL para Condomínios, Técnicos, Visitas e Contratos.
 
 ## Estado Atual do Produto
 ### Implementado
@@ -16,6 +16,7 @@ O produto nasceu como um MVP frontend-only, com dados em `localStorage`, para va
 - Gestão de Condomínios integrada ao backend.
 - Gestão de Técnicos integrada ao backend.
 - Gestão de Visitas integrada ao backend, com checklist e aceite técnico.
+- Gestão de Contratos integrada ao backend.
 - Upload real de fotos e termo assinado em Visitas usando Vercel Blob.
 - Páginas existentes para Painel, Relatórios, Contratos e Empresa.
 - Componentes reutilizáveis para filtros, cards, modais, ações, upload local e prévias.
@@ -23,7 +24,7 @@ O produto nasceu como um MVP frontend-only, com dados em `localStorage`, para va
 ### Parcial ou Ainda Não Integrado ao Backend
 - Painel ainda depende do cache frontend e dos módulos já carregados.
 - Relatórios ainda não persistem no banco.
-- Contratos ainda não persistem no banco.
+- Upload/download de contrato assinado ainda não foi implementado.
 - Empresa/Configuração da empresa ainda não persiste no banco.
 - Uploads de Visitas já usam storage externo; uploads de Contratos e Relatórios ainda não foram implementados.
 - Geração de PDF real ainda não foi implementada.
@@ -59,7 +60,7 @@ Os perfis internos atuais são:
 - Pode visualizar listas de Condomínios e Técnicos.
 - Não pode criar, editar ou excluir Condomínios e Técnicos.
 - Não vê Contratos nem Empresa no menu.
-- Não deve acessar endpoints futuros de Contratos e Empresa.
+- Não deve acessar endpoints de Contratos nem endpoints futuros de Empresa.
 
 ## Fluxo de Autenticação
 1. Usuário acessa `/login`.

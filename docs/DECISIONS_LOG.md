@@ -385,7 +385,7 @@ Endpoints integrados:
 - mantém UI existente com cache em memória.
 
 **Negativas**
-- Relatórios, Contratos e Empresa ainda precisam ser migrados;
+- Relatórios e Empresa ainda precisam ser migrados;
 - `AppContext` ainda contém compatibilidade temporária.
 
 ---
@@ -601,6 +601,37 @@ Indicadores implementados:
 **Negativas**
 - ainda não há filtros por período na UI;
 - indicadores são agregações operacionais simples, sem gráficos complexos.
+
+---
+
+## DEC-026: Contratos com CRUD real no backend
+### Status
+Aceita
+
+### Decisão
+Migrar o módulo de Contratos para persistência real em PostgreSQL/Neon, com endpoints REST no Fastify:
+- `GET /contracts`;
+- `GET /contracts/:id`;
+- `POST /contracts`;
+- `PUT /contracts/:id`;
+- `DELETE /contracts/:id`.
+
+### Regras
+- Contratos permanecem restritos a `admin` e `manager`.
+- `collaborator` não acessa o módulo no frontend nem no backend.
+- Todo contrato deve estar vinculado a um Condomínio existente.
+- `signedFileId` permanece preservado para upload de contrato assinado em etapa futura.
+- Upload/download de contrato assinado não faz parte desta etapa.
+
+### Consequências
+**Positivas**
+- remove persistência local como fonte principal do módulo de Contratos;
+- completa a base contratual real no Neon;
+- mantém a prévia/impressão HTML atual sem acoplar upload de arquivo.
+
+**Negativas**
+- contrato assinado ainda precisa de fluxo próprio de upload privado;
+- geração server-side de PDF e versionamento documental continuam planejados.
 
 ---
 

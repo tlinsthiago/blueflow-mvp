@@ -22,7 +22,7 @@ Persistência real já usada pela aplicação:
 - visitas e checklist operacional;
 - arquivos de visitas com metadados no PostgreSQL e conteúdo no Vercel Blob privado.
 
-Relatórios, Contratos e Empresa ainda não possuem fluxo completo integrado.
+Relatórios e Empresa ainda não possuem fluxo completo integrado. Contratos já possuem CRUD real; o upload de contrato assinado fica para etapa futura.
 
 ## Perfis
 ### UserRole
@@ -206,7 +206,9 @@ Relacionamentos:
 
 Status:
 - modelado;
-- endpoints e integração frontend ainda pendentes.
+- CRUD backend implementado;
+- frontend integrado via API;
+- `signedFileId` preservado para upload de contrato assinado em etapa futura.
 
 ### File
 - `id`

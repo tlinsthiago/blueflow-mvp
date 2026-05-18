@@ -17,6 +17,7 @@ export function createEmptyContract() {
     jurisdiction: 'Recife/PE',
     status: contractStatuses[0],
     notes: '',
+    signedFileId: '',
     signedFile: null,
   };
 }

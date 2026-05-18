@@ -10,7 +10,7 @@ O projeto saiu do MVP frontend-only e agora está em uma V1 fullstack parcial:
 - Prisma ORM;
 - autenticação JWT;
 - RBAC;
-- CRUD real de Condomínios, Técnicos e Visitas.
+- CRUD real de Condomínios, Técnicos, Visitas e Contratos.
 - backend preparado para deploy separado na Vercel.
 
 ## 2. Contexto de Negócio
@@ -51,6 +51,7 @@ O sistema atende a operação da empresa **F TEC AUTOMAÇÃO**, centralizando:
 - CRUD real de Condomínios.
 - CRUD real de Técnicos.
 - CRUD real de Visitas no backend e frontend.
+- CRUD real de Contratos no backend e frontend.
 - Termo de instalação e aceite técnico imprimível em Visitas.
 - Upload real de arquivos de Visitas com Vercel Blob.
 - Entry point serverless do backend para Vercel.
@@ -60,7 +61,7 @@ O sistema atende a operação da empresa **F TEC AUTOMAÇÃO**, centralizando:
 ### Ainda Não Integrado
 - Empresa.
 - Relatórios.
-- Contratos.
+- Upload/download de contrato assinado.
 - Geração de PDF.
 - Portal do cliente.
 
@@ -119,6 +120,13 @@ Não deve voltar a ser banco local.
 - `POST /visits/:id/files`
 - `DELETE /visits/:id/files/:fileId`
 
+### Contratos
+- `GET /contracts`
+- `GET /contracts/:id`
+- `POST /contracts`
+- `PUT /contracts/:id`
+- `DELETE /contracts/:id`
+
 ## 9. Regras Importantes
 - `admin` e `manager` podem escrever em Condomínios e Técnicos.
 - `collaborator` apenas visualiza Condomínios e Técnicos.
@@ -145,7 +153,7 @@ Frontend:
 ## 11. Próxima Sequência Recomendada
 1. Implementar e integrar `CompanySettings`.
 2. Implementar Relatórios vinculados a Visitas.
-3. Implementar Contratos via API com RBAC.
+3. Implementar upload/download de contrato assinado.
 4. Implementar uploads de Contratos/Relatórios conforme necessidade.
 5. Evoluir Dashboard com gráficos simples e filtros por período.
 6. Avaliar React Query para server-state.

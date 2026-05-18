@@ -26,13 +26,15 @@ Entregue:
 - `AppContext` como fachada de sessão/cache;
 - CRUD real de Condomínios;
 - CRUD real de Técnicos.
+- CRUD real de Visitas;
+- upload real de arquivos de Visitas;
+- Dashboard operacional real;
+- CRUD real de Contratos.
 
 Pendente nesta fase:
 - Empresa via API;
-- Visitas via API;
 - Relatórios via API;
-- Contratos via API;
-- uploads via storage externo.
+- upload de contrato assinado.
 
 ## Fase 3: Operação Técnica Persistida
 Próximo foco recomendado:
@@ -45,8 +47,8 @@ Próximo foco recomendado:
 
 ## Fase 4: Contratos e Empresa
 - persistir `CompanySettings`;
-- CRUD real de Contratos;
-- RBAC backend para Contratos e Empresa;
+- upload/download de contrato assinado;
+- RBAC backend para Empresa;
 - documento contratual gerado a partir de dados persistidos;
 - numeração e ciclo de vida contratual;
 - alertas de vencimento futuramente.

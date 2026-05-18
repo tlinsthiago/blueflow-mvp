@@ -140,6 +140,15 @@ Essa abordagem evita quebrar as páginas existentes enquanto a migração comple
 
 Observação: endpoints de Visitas existem no backend, com checklist operacional básico, e o frontend já está integrado para listar, criar, editar e excluir conforme permissão.
 
+### Contratos
+- `GET /contracts`
+- `GET /contracts/:id`
+- `POST /contracts`
+- `PUT /contracts/:id`
+- `DELETE /contracts/:id`
+
+Observação: endpoints de Contratos existem no backend, com persistência em PostgreSQL/Neon, vínculo obrigatório com Condomínio e acesso restrito a `admin` e `manager`. O frontend já consome o CRUD real via `contractService` e `AppContext`. Upload/download de contrato assinado ainda não faz parte desta etapa.
+
 ## Endpoints Planejados
 - Empresa: `GET /company`, `PUT /company`.
 - Visitas: geração de relatório.
@@ -219,7 +228,7 @@ Persistência operacional real implementada até agora:
 - arquivos de Visitas, com conteúdo no Vercel Blob e metadados em `File`.
 - indicadores operacionais do Dashboard via agregações do backend.
 
-Empresa, Relatórios e Contratos estão modelados ou planejados, mas os endpoints e a integração frontend ainda não foram concluídos.
+Empresa e Relatórios estão modelados ou planejados, mas os endpoints e a integração frontend ainda não foram concluídos. Contratos já possuem CRUD real integrado; upload de contrato assinado permanece planejado.
 
 ## Uploads de Visitas
 Implementado com:
@@ -267,7 +276,7 @@ O backend usa Zod para validar payloads e parâmetros em rotas novas.
 - Permissões sempre devem ser validadas no backend, mesmo quando já filtradas no frontend.
 
 ## Riscos Técnicos Atuais
-- Relatórios, contratos e empresa ainda não persistem via API.
+- Relatórios e empresa ainda não persistem via API.
 - Uploads de Contratos e Relatórios ainda não foram integrados.
 - Assinatura eletrônica ainda não foi implementada.
 - `AppContext` ainda contém compatibilidade temporária para módulos não migrados.

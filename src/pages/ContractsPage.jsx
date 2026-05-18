@@ -5,7 +5,6 @@ import { ActionButtons } from '../components/ActionButtons';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { ContractPreview } from '../components/ContractPreview';
 import { EmptyState } from '../components/EmptyState';
-import { FileUploader } from '../components/FileUploader';
 import { FilterPanel } from '../components/FilterPanel';
 import { FormField } from '../components/FormField';
 import { ModalShell } from '../components/ModalShell';
@@ -18,13 +17,23 @@ import { createEmptyContract, exportContractDocument, getContractLifecycleStatus
 import { formatCurrency, formatDate } from '../utils/formatters';
 
 export function ContractsPage() {
-  const { contracts, condominiums, companySettings, createContract, updateContract, deleteContract } = useAppContext();
+  const {
+    contracts,
+    condominiums,
+    companySettings,
+    domainLoading,
+    domainErrors,
+    createContract,
+    updateContract,
+    deleteContract,
+  } = useAppContext();
   const location = useLocation();
   const [filters, setFilters] = useState({ condominiumId: '', status: '', serviceType: '' });
   const [form, setForm] = useState(createEmptyContract());
   const [editingId, setEditingId] = useState(null);
   const [detailsItem, setDetailsItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const filteredContracts = useMemo(() => {
     return contracts.filter((contract) => {
@@ -55,14 +64,20 @@ export function ContractsPage() {
     setEditingId(null);
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-    if (editingId) {
-      updateContract(editingId, form);
-    } else {
-      createContract(form);
+    setIsSubmitting(true);
+
+    try {
+      if (editingId) {
+        await updateContract(editingId, form);
+      } else {
+        await createContract(form);
+      }
+      resetForm();
+    } finally {
+      setIsSubmitting(false);
     }
-    resetForm();
   }
 
   function getCondominium(id) {
@@ -73,7 +88,7 @@ export function ContractsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Contratos"
-        description="Gerencie múltiplos contratos por condomínio, gere documento, imprima e anexe a versão assinada."
+        description="Gerencie múltiplos contratos por condomínio, gere documento e imprima a versão para assinatura."
       />
 
       <FilterPanel
@@ -132,7 +147,15 @@ export function ContractsPage() {
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <SectionCard title="Carteira de contratos" subtitle={`${filteredContracts.length} contrato(s) encontrado(s).`}>
-          {filteredContracts.length ? (
+          {domainErrors.contracts ? (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+              {domainErrors.contracts}
+            </div>
+          ) : domainLoading.contracts ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-600">
+              Carregando contratos...
+            </div>
+          ) : filteredContracts.length ? (
             <div className="space-y-4">
               {filteredContracts.map((contract) => {
                 const condominium = getCondominium(contract.condominiumId);
@@ -147,7 +170,8 @@ export function ContractsPage() {
                         </div>
                         <p className="mt-1 text-sm text-slate-500">{condominium?.name ?? 'Condomínio não identificado'}</p>
                         <p className="mt-2 text-sm text-slate-600">
-                          {contract.serviceType} • Início: {formatDate(contract.startDate)} • Valor: {formatCurrency(contract.monthlyValue)}
+                          {contract.serviceType} • Início: {formatDate(contract.startDate)} • Valor:{' '}
+                          {formatCurrency(contract.monthlyValue)}
                         </p>
                       </div>
                       <ActionButtons
@@ -184,7 +208,7 @@ export function ContractsPage() {
 
         <SectionCard
           title={editingId ? 'Editar contrato' : 'Cadastrar contrato'}
-          subtitle="Permite múltiplos contratos por condomínio, com documento e arquivo assinado."
+          subtitle="Permite múltiplos contratos por condomínio, com prévia e impressão do documento."
           action={
             editingId ? (
               <button type="button" onClick={resetForm} className="text-sm font-semibold text-brand-600">
@@ -323,12 +347,16 @@ export function ContractsPage() {
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
               />
             </FormField>
-            <FileUploader
-              file={form.signedFile}
-              onChange={(signedFile) => setForm((current) => ({ ...current, signedFile }))}
-            />
-            <button type="submit" className="w-full rounded-2xl bg-brand-600 px-4 py-3 font-semibold text-white transition hover:bg-brand-500">
-              {editingId ? 'Salvar alterações' : 'Salvar contrato'}
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+              Upload do contrato assinado será conectado em uma próxima etapa. O cadastro atual salva os dados contratuais
+              no sistema.
+            </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full rounded-2xl bg-brand-600 px-4 py-3 font-semibold text-white transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isSubmitting ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Salvar contrato'}
             </button>
           </form>
         </SectionCard>
@@ -352,10 +380,12 @@ export function ContractsPage() {
       <ConfirmationModal
         open={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (deleteTarget) {
-            deleteContract(deleteTarget.id);
-            setDeleteTarget(null);
+            const deleted = await deleteContract(deleteTarget.id);
+            if (deleted) {
+              setDeleteTarget(null);
+            }
           }
         }}
         title="Excluir contrato"

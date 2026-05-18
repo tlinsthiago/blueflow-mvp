@@ -20,7 +20,7 @@ Todas as rotas de domínio implementadas exigem JWT.
 - `manager`: leitura e escrita.
 - `collaborator`: leitura, sem criação, edição ou exclusão.
 
-Contratos e Empresa devem ser restritos a `admin` e `manager` quando seus endpoints forem implementados.
+Contratos e Empresa são restritos a `admin` e `manager`.
 
 ## Implementado
 ### Health
@@ -126,6 +126,31 @@ Tipos aceitos em `fileType`:
 - `signed_acceptance_term`
 - `other`
 
+### Contracts
+- `GET /contracts`
+- `GET /contracts/:id`
+- `POST /contracts`
+- `PUT /contracts/:id`
+- `DELETE /contracts/:id`
+
+Filtros:
+- `condominiumId`
+- `status`
+- `serviceType`
+- `page`
+- `pageSize`
+
+Permissões:
+- somente `admin` e `manager`;
+- `collaborator` não acessa o módulo de Contratos.
+
+Regras:
+- contrato sempre pertence a um Condomínio;
+- não criar ou editar contrato com Condomínio inexistente;
+- não excluir contrato inexistente;
+- `signedFileId` permanece preservado para upload de contrato assinado em etapa futura;
+- upload/download de contrato assinado ainda não foi implementado nesta etapa.
+
 ## Planejado
 ### Company
 - `GET /company`
@@ -144,12 +169,7 @@ Permissão planejada:
 - `DELETE /reports/:id`
 - `GET /reports/:id/download`
 
-### Contracts
-- `GET /contracts`
-- `POST /contracts`
-- `GET /contracts/:id`
-- `PUT /contracts/:id`
-- `DELETE /contracts/:id`
+### Contracts - próximas extensões
 - `POST /contracts/:id/signed-file`
 - `GET /contracts/:id/document`
 - `GET /contracts/:id/print`
@@ -250,5 +270,6 @@ O frontend já consome:
 - `condominiumService`;
 - `technicianService`.
 - `visitService`, incluindo anexos reais de visitas.
+- `contractService`, com CRUD real de Contratos.
 
-Services de Contratos e Relatórios já existem como estrutura base, mas ainda não estão conectados a endpoints implementados.
+Service de Relatórios já existe como estrutura base, mas ainda não está conectado a endpoints implementados.

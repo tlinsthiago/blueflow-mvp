@@ -1,4 +1,4 @@
-# BlueFlow Gestão Hidráulica
+# F TEC AUTOMAÇÃO - Gestão Hidráulica
 
 Aplicação web responsiva para gestão operacional de uma empresa de manutenção hidráulica condominial, com foco em carteira de condomínios, visitas técnicas, relatórios, contratos e documentação comercial.
 
@@ -29,6 +29,7 @@ O `localStorage` não é mais a persistência operacional principal. Ele guarda 
 - Gestão real de condomínios via API
 - Gestão real de técnicos via API
 - Gestão real de visitas técnicas via API
+- Gestão real de contratos via API
 - Checklist técnico hidráulico persistido
 - Termo de instalação e aceite técnico imprimível
 - RBAC com perfis `admin`, `manager` e `collaborator`
@@ -38,7 +39,7 @@ O `localStorage` não é mais a persistência operacional principal. Ele guarda 
 
 - Empresa via API
 - Relatórios via API
-- Contratos via API
+- Upload de contrato assinado
 - Upload persistido em Vercel Blob ou storage externo equivalente
 - Geração real de PDF
 - Envio de notificações por WhatsApp e e-mail
@@ -98,6 +99,6 @@ A pasta [docs](./docs/README.md) concentra a documentação funcional, técnica,
 
 - O backend já existe em `backend`.
 - A autenticação real usa JWT.
-- Condomínios, Técnicos e Visitas já usam API e PostgreSQL.
-- Empresa, Relatórios, Contratos e Uploads ainda seguem como próximas etapas.
+- Condomínios, Técnicos, Visitas e Contratos já usam API e PostgreSQL.
+- Empresa, Relatórios e uploads de Contratos ainda seguem como próximas etapas.
 - O projeto está preparado para evolução incremental, sem perda do contexto funcional atual.

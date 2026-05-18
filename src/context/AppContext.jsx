@@ -7,6 +7,7 @@ import * as authService from '../services/authService';
 import { condominiumService } from '../services/condominiumService';
 import { technicianService } from '../services/technicianService';
 import { visitService } from '../services/visitService';
+import { contractService } from '../services/contractService';
 import { fullAccessRoles, hasAnyRole } from '../auth/permissions';
 
 const AppContext = createContext(null);
@@ -37,12 +38,14 @@ const initialDomainLoading = {
   condominiums: false,
   technicians: false,
   visits: false,
+  contracts: false,
 };
 
 const initialDomainErrors = {
   condominiums: '',
   technicians: '',
   visits: '',
+  contracts: '',
 };
 
 const visitStatusToApi = {
@@ -181,6 +184,73 @@ function toVisitPayload(payload) {
   };
 }
 
+function normalizeApiContract(payload) {
+  return normalizeContract({
+    ...payload,
+    monthlyValue: payload.monthlyValue ?? '',
+    dueDay: payload.dueDay ?? '',
+    termMonths: payload.termMonths ?? '',
+    startDate: payload.startDate ? payload.startDate.slice(0, 10) : '',
+    signatureDate: payload.signatureDate ? payload.signatureDate.slice(0, 10) : '',
+    monthlyPreventiveVisits: payload.monthlyPreventiveVisits ?? '',
+    emergencySlaHours: payload.emergencySlaHours ?? '',
+    nonEmergencySlaHours: payload.nonEmergencySlaHours ?? '',
+    jurisdiction: payload.jurisdiction ?? '',
+    notes: payload.notes ?? '',
+    signedFileId: payload.signedFileId ?? '',
+    signedFile: payload.signedFile ?? null,
+  });
+}
+
+function nullableNumber(value) {
+  if (value === '' || value == null) {
+    return null;
+  }
+
+  const numericValue =
+    typeof value === 'number'
+      ? value
+      : Number(String(value).replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.'));
+
+  return Number.isNaN(numericValue) ? null : numericValue;
+}
+
+function nullableInteger(value) {
+  if (value === '' || value == null) {
+    return null;
+  }
+
+  return Number.parseInt(value, 10);
+}
+
+function nullableDate(value) {
+  if (!value) {
+    return null;
+  }
+
+  return value;
+}
+
+function toContractPayload(payload) {
+  return {
+    condominiumId: payload.condominiumId,
+    contractNumber: payload.contractNumber,
+    serviceType: payload.serviceType,
+    monthlyValue: nullableNumber(payload.monthlyValue),
+    dueDay: nullableInteger(payload.dueDay),
+    termMonths: nullableInteger(payload.termMonths),
+    startDate: nullableDate(payload.startDate),
+    signatureDate: nullableDate(payload.signatureDate),
+    monthlyPreventiveVisits: nullableInteger(payload.monthlyPreventiveVisits),
+    emergencySlaHours: nullableInteger(payload.emergencySlaHours),
+    nonEmergencySlaHours: nullableInteger(payload.nonEmergencySlaHours),
+    jurisdiction: payload.jurisdiction ?? '',
+    status: payload.status,
+    notes: payload.notes ?? '',
+    signedFileId: payload.signedFileId || null,
+  };
+}
+
 export function AppProvider({ children }) {
   const [dataState, setDataState] = useState(emptyDataState);
   const [currentUser, setCurrentUser] = useState(() => getStoredUser());
@@ -269,6 +339,29 @@ export function AppProvider({ children }) {
     }
   }
 
+  async function loadContracts() {
+    if (!hasAnyRole(currentUser, fullAccessRoles)) {
+      setDataState((current) => ({ ...current, contracts: [] }));
+      return [];
+    }
+
+    setDomainLoading((current) => ({ ...current, contracts: true }));
+    setDomainErrors((current) => ({ ...current, contracts: '' }));
+
+    try {
+      const payload = await contractService.list({ pageSize: 100 });
+      const contracts = (payload.data ?? []).map(normalizeApiContract);
+      setDataState((current) => ({ ...current, contracts }));
+      return contracts;
+    } catch (error) {
+      setDomainErrors((current) => ({ ...current, contracts: error.message }));
+      notify('error', error.message);
+      return [];
+    } finally {
+      setDomainLoading((current) => ({ ...current, contracts: false }));
+    }
+  }
+
   useEffect(() => {
     if (!isAuthenticated || authLoading) {
       return;
@@ -277,7 +370,10 @@ export function AppProvider({ children }) {
     loadCondominiums();
     loadTechnicians();
     loadVisits();
-  }, [authLoading, isAuthenticated]);
+    if (hasAnyRole(currentUser, fullAccessRoles)) {
+      loadContracts();
+    }
+  }, [authLoading, currentUser, isAuthenticated]);
 
   useEffect(() => {
     let isMounted = true;
@@ -338,6 +434,7 @@ export function AppProvider({ children }) {
       loadCondominiums,
       loadTechnicians,
       loadVisits,
+      loadContracts,
       async login(credentials) {
         const session = await authService.login(credentials);
         setToken(session.token);
@@ -603,43 +700,49 @@ export function AppProvider({ children }) {
         notify('success', 'Relatório excluído com sucesso.');
         return true;
       },
-      createContract(payload) {
-        setDataState((current) => ({
-          ...current,
-          contracts: [
-            normalizeContract({
-              id: crypto.randomUUID(),
-              ...payload,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            }),
-            ...current.contracts,
-          ],
-        }));
-        notify('success', 'Contrato cadastrado com sucesso.');
+      async createContract(payload) {
+        try {
+          const response = await contractService.create(toContractPayload(payload));
+          const contract = normalizeApiContract(response.data);
+          setDataState((current) => ({
+            ...current,
+            contracts: [contract, ...current.contracts],
+          }));
+          notify('success', 'Contrato cadastrado com sucesso.');
+          return contract;
+        } catch (error) {
+          notify('error', error.message);
+          throw error;
+        }
       },
-      updateContract(id, payload) {
-        setDataState((current) => ({
-          ...current,
-          contracts: current.contracts.map((item) =>
-            item.id === id
-              ? normalizeContract({
-                  ...item,
-                  ...payload,
-                  updatedAt: new Date().toISOString(),
-                })
-              : item
-          ),
-        }));
-        notify('success', 'Contrato atualizado com sucesso.');
+      async updateContract(id, payload) {
+        try {
+          const response = await contractService.update(id, toContractPayload(payload));
+          const contract = normalizeApiContract(response.data);
+          setDataState((current) => ({
+            ...current,
+            contracts: current.contracts.map((item) => (item.id === id ? contract : item)),
+          }));
+          notify('success', 'Contrato atualizado com sucesso.');
+          return contract;
+        } catch (error) {
+          notify('error', error.message);
+          throw error;
+        }
       },
-      deleteContract(id) {
-        setDataState((current) => ({
-          ...current,
-          contracts: current.contracts.filter((item) => item.id !== id),
-        }));
-        notify('success', 'Contrato excluído com sucesso.');
-        return true;
+      async deleteContract(id) {
+        try {
+          await contractService.remove(id);
+          setDataState((current) => ({
+            ...current,
+            contracts: current.contracts.filter((item) => item.id !== id),
+          }));
+          notify('success', 'Contrato excluído com sucesso.');
+          return true;
+        } catch (error) {
+          notify('error', error.message);
+          return false;
+        }
       },
     }),
     [authLoading, currentUser, dataState, domainErrors, domainLoading, isAuthenticated, notifications, token]
