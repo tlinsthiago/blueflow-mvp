@@ -14,7 +14,7 @@ import { StatusBadge } from '../components/StatusBadge';
 import { contractStatuses, serviceTypes } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
 import { createEmptyContract, exportContractDocument, getContractLifecycleStatus, printContractDocument } from '../utils/contractHelpers';
-import { formatCurrency, formatDate } from '../utils/formatters';
+import { formatCurrency, formatDate, formatInputDate } from '../utils/formatters';
 
 export function ContractsPage() {
   const {
@@ -369,17 +369,19 @@ export function ContractsPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <FormField label="Data de início">
                 <input
-                  type="date"
-                  value={form.startDate}
+                  inputMode="numeric"
+                  value={formatInputDate(form.startDate)}
                   onChange={(event) => setForm((current) => ({ ...current, startDate: event.target.value }))}
+                  placeholder="dd/mm/aaaa"
                   className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
                 />
               </FormField>
               <FormField label="Data de assinatura">
                 <input
-                  type="date"
-                  value={form.signatureDate}
+                  inputMode="numeric"
+                  value={formatInputDate(form.signatureDate)}
                   onChange={(event) => setForm((current) => ({ ...current, signatureDate: event.target.value }))}
+                  placeholder="dd/mm/aaaa"
                   className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
                 />
               </FormField>

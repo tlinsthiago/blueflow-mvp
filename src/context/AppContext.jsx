@@ -9,6 +9,7 @@ import { technicianService } from '../services/technicianService';
 import { visitService } from '../services/visitService';
 import { contractService } from '../services/contractService';
 import { fullAccessRoles, hasAnyRole } from '../auth/permissions';
+import { formatCurrencyInput, parseCurrencyValue, parseDateInputToIso } from '../utils/formatters';
 
 const AppContext = createContext(null);
 const LEGACY_STORAGE_KEY = 'blueflow-condo-care';
@@ -170,7 +171,7 @@ function toVisitPayload(payload) {
     equipmentValue:
       payload.responsible?.equipmentValue === '' || payload.responsible?.equipmentValue == null
         ? null
-        : Number(payload.responsible.equipmentValue),
+        : nullableNumber(payload.responsible.equipmentValue),
     acceptanceNotes: payload.acceptanceNotes ?? '',
     notes: payload.notes ?? '',
     actionsPerformed: payload.actionsPerformed ?? '',
@@ -187,7 +188,7 @@ function toVisitPayload(payload) {
 function normalizeApiContract(payload) {
   return normalizeContract({
     ...payload,
-    monthlyValue: payload.monthlyValue ?? '',
+    monthlyValue: formatCurrencyInput(payload.monthlyValue),
     dueDay: payload.dueDay ?? '',
     termMonths: payload.termMonths ?? '',
     startDate: payload.startDate ? payload.startDate.slice(0, 10) : '',
@@ -203,15 +204,7 @@ function normalizeApiContract(payload) {
 }
 
 function nullableNumber(value) {
-  if (value === '' || value == null) {
-    return null;
-  }
-
-  const numericValue =
-    typeof value === 'number'
-      ? value
-      : Number(String(value).replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.'));
-
+  const numericValue = parseCurrencyValue(value);
   return Number.isNaN(numericValue) ? null : numericValue;
 }
 
@@ -228,7 +221,7 @@ function nullableDate(value) {
     return null;
   }
 
-  return value;
+  return parseDateInputToIso(value);
 }
 
 function toContractPayload(payload) {
