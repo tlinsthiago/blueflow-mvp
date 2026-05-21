@@ -17,6 +17,7 @@ O produto nasceu como um MVP frontend-only, com dados em `localStorage`, para va
 - Gestão de Técnicos integrada ao backend.
 - Gestão de Visitas integrada ao backend, com checklist e aceite técnico.
 - Gestão de Contratos integrada ao backend.
+- Upload, visualização/download e remoção de contrato assinado usando storage privado.
 - Upload real de fotos e termo assinado em Visitas usando Vercel Blob.
 - Páginas existentes para Painel, Relatórios, Contratos e Empresa.
 - Componentes reutilizáveis para filtros, cards, modais, ações, upload local e prévias.
@@ -24,7 +25,7 @@ O produto nasceu como um MVP frontend-only, com dados em `localStorage`, para va
 ### Parcial ou Ainda Não Integrado ao Backend
 - Painel ainda depende do cache frontend e dos módulos já carregados.
 - Relatórios ainda não persistem no banco.
-- Upload/download de contrato assinado ainda não foi implementado.
+- Relatórios ainda não persistem no banco.
 - Empresa/Configuração da empresa ainda não persiste no banco.
 - Uploads de Visitas já usam storage externo; uploads de Contratos e Relatórios ainda não foram implementados.
 - Geração de PDF real ainda não foi implementada.

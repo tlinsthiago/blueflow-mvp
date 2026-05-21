@@ -132,6 +132,9 @@ Tipos aceitos em `fileType`:
 - `POST /contracts`
 - `PUT /contracts/:id`
 - `DELETE /contracts/:id`
+- `POST /contracts/:id/signed-file`
+- `GET /contracts/:id/signed-file/download`
+- `DELETE /contracts/:id/signed-file`
 
 Filtros:
 - `condominiumId`
@@ -149,7 +152,8 @@ Regras:
 - não criar ou editar contrato com Condomínio inexistente;
 - não excluir contrato inexistente;
 - `signedFileId` permanece preservado para upload de contrato assinado em etapa futura;
-- upload/download de contrato assinado ainda não foi implementado nesta etapa.
+- upload/download de contrato assinado usa Vercel Blob privado e endpoint autenticado;
+- o banco salva apenas metadados em `File`, com `fileType`/`category` `signed_contract`.
 
 ## Planejado
 ### Company
@@ -170,7 +174,6 @@ Permissão planejada:
 - `GET /reports/:id/download`
 
 ### Contracts - próximas extensões
-- `POST /contracts/:id/signed-file`
 - `GET /contracts/:id/document`
 - `GET /contracts/:id/print`
 

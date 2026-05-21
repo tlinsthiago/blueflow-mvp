@@ -1,4 +1,4 @@
-import { apiRequest } from './apiClient';
+import { apiFileRequest, apiRequest } from './apiClient';
 
 const basePath = '/contracts';
 
@@ -24,6 +24,23 @@ export const contractService = {
   },
   remove(id) {
     return apiRequest(`${basePath}/${id}`, {
+      method: 'DELETE',
+    });
+  },
+  uploadSignedFile(id, file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return apiRequest(`${basePath}/${id}/signed-file`, {
+      method: 'POST',
+      body: formData,
+    });
+  },
+  downloadSignedFile(id) {
+    return apiFileRequest(`${basePath}/${id}/signed-file/download`);
+  },
+  deleteSignedFile(id) {
+    return apiRequest(`${basePath}/${id}/signed-file`, {
       method: 'DELETE',
     });
   },

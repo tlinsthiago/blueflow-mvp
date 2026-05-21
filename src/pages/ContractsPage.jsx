@@ -1,5 +1,5 @@
 import { PlusCircle } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ActionButtons } from '../components/ActionButtons';
 import { ConfirmationModal } from '../components/ConfirmationModal';
@@ -26,6 +26,9 @@ export function ContractsPage() {
     createContract,
     updateContract,
     deleteContract,
+    uploadContractSignedFile,
+    openContractSignedFile,
+    deleteContractSignedFile,
   } = useAppContext();
   const location = useLocation();
   const [filters, setFilters] = useState({ condominiumId: '', status: '', serviceType: '' });
@@ -34,6 +37,9 @@ export function ContractsPage() {
   const [detailsItem, setDetailsItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [signedFileUploadingId, setSignedFileUploadingId] = useState(null);
+  const [signedFileDeletingId, setSignedFileDeletingId] = useState(null);
+  const fileInputRefs = useRef({});
 
   const filteredContracts = useMemo(() => {
     return contracts.filter((contract) => {
@@ -82,6 +88,31 @@ export function ContractsPage() {
 
   function getCondominium(id) {
     return condominiums.find((item) => item.id === id);
+  }
+
+  async function handleSignedFileChange(contract, event) {
+    const selectedFile = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!selectedFile) {
+      return;
+    }
+
+    setSignedFileUploadingId(contract.id);
+    try {
+      await uploadContractSignedFile(contract.id, selectedFile);
+    } finally {
+      setSignedFileUploadingId(null);
+    }
+  }
+
+  async function handleDeleteSignedFile(contract) {
+    setSignedFileDeletingId(contract.id);
+    try {
+      await deleteContractSignedFile(contract.id);
+    } finally {
+      setSignedFileDeletingId(null);
+    }
   }
 
   return (
@@ -196,6 +227,54 @@ export function ContractsPage() {
                           { label: 'Excluir', onClick: () => setDeleteTarget(contract), tone: 'danger' },
                         ]}
                       />
+                    </div>
+                    <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-900">Contrato assinado</p>
+                          <p className="mt-1 truncate text-sm text-slate-600">
+                            {contract.signedFile?.fileName ?? 'Nenhum contrato assinado anexado.'}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <input
+                            ref={(element) => {
+                              fileInputRefs.current[contract.id] = element;
+                            }}
+                            type="file"
+                            className="hidden"
+                            accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif"
+                            onChange={(event) => handleSignedFileChange(contract, event)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => fileInputRefs.current[contract.id]?.click()}
+                            disabled={signedFileUploadingId === contract.id}
+                            className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {signedFileUploadingId === contract.id ? 'Enviando...' : contract.signedFile ? 'Substituir arquivo' : 'Anexar arquivo'}
+                          </button>
+                          {contract.signedFile ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => openContractSignedFile(contract)}
+                                className="rounded-2xl bg-brand-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-500"
+                              >
+                                Visualizar/Baixar contrato assinado
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSignedFile(contract)}
+                                disabled={signedFileDeletingId === contract.id}
+                                className="rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                {signedFileDeletingId === contract.id ? 'Removendo...' : 'Remover contrato assinado'}
+                              </button>
+                            </>
+                          ) : null}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );
@@ -347,10 +426,6 @@ export function ContractsPage() {
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
               />
             </FormField>
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-              Upload do contrato assinado será conectado em uma próxima etapa. O cadastro atual salva os dados contratuais
-              no sistema.
-            </div>
             <button
               type="submit"
               disabled={isSubmitting}

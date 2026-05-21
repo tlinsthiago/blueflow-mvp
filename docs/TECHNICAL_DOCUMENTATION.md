@@ -146,8 +146,11 @@ Observação: endpoints de Visitas existem no backend, com checklist operacional
 - `POST /contracts`
 - `PUT /contracts/:id`
 - `DELETE /contracts/:id`
+- `POST /contracts/:id/signed-file`
+- `GET /contracts/:id/signed-file/download`
+- `DELETE /contracts/:id/signed-file`
 
-Observação: endpoints de Contratos existem no backend, com persistência em PostgreSQL/Neon, vínculo obrigatório com Condomínio e acesso restrito a `admin` e `manager`. O frontend já consome o CRUD real via `contractService` e `AppContext`. Upload/download de contrato assinado ainda não faz parte desta etapa.
+Observação: endpoints de Contratos existem no backend, com persistência em PostgreSQL/Neon, vínculo obrigatório com Condomínio e acesso restrito a `admin` e `manager`. O frontend já consome o CRUD real via `contractService` e `AppContext`. O contrato assinado usa Vercel Blob privado, metadados em `File` e download por endpoint autenticado.
 
 ## Endpoints Planejados
 - Empresa: `GET /company`, `PUT /company`.
@@ -277,7 +280,7 @@ O backend usa Zod para validar payloads e parâmetros em rotas novas.
 
 ## Riscos Técnicos Atuais
 - Relatórios e empresa ainda não persistem via API.
-- Uploads de Contratos e Relatórios ainda não foram integrados.
+- Uploads de Relatórios ainda não foram integrados.
 - Assinatura eletrônica ainda não foi implementada.
 - `AppContext` ainda contém compatibilidade temporária para módulos não migrados.
 - Falta React Query ou camada dedicada de cache server-state.

@@ -744,6 +744,54 @@ export function AppProvider({ children }) {
           return false;
         }
       },
+      async uploadContractSignedFile(contractId, file) {
+        try {
+          const response = await contractService.uploadSignedFile(contractId, file);
+          const contract = normalizeApiContract(response.data);
+          setDataState((current) => ({
+            ...current,
+            contracts: current.contracts.map((item) => (item.id === contractId ? contract : item)),
+          }));
+          notify('success', 'Contrato assinado anexado com sucesso.');
+          return contract;
+        } catch (error) {
+          notify('error', error.message);
+          throw error;
+        }
+      },
+      async openContractSignedFile(contract) {
+        try {
+          const blob = await contractService.downloadSignedFile(contract.id);
+          const objectUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = objectUrl;
+          link.target = '_blank';
+          link.rel = 'noreferrer';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+          return true;
+        } catch (error) {
+          notify('error', error.message);
+          return false;
+        }
+      },
+      async deleteContractSignedFile(contractId) {
+        try {
+          const response = await contractService.deleteSignedFile(contractId);
+          const contract = normalizeApiContract(response.data);
+          setDataState((current) => ({
+            ...current,
+            contracts: current.contracts.map((item) => (item.id === contractId ? contract : item)),
+          }));
+          notify('success', 'Contrato assinado removido com sucesso.');
+          return true;
+        } catch (error) {
+          notify('error', error.message);
+          return false;
+        }
+      },
     }),
     [authLoading, currentUser, dataState, domainErrors, domainLoading, isAuthenticated, notifications, token]
   );

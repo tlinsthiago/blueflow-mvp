@@ -29,12 +29,14 @@ Entregue:
 - CRUD real de Visitas;
 - upload real de arquivos de Visitas;
 - Dashboard operacional real;
-- CRUD real de Contratos.
+- CRUD real de Contratos;
+- upload privado de contrato assinado.
 
 Pendente nesta fase:
 - Empresa via API;
 - Relatórios via API;
-- upload de contrato assinado.
+- Empresa via API;
+- Relatórios via API.
 
 ## Fase 3: Operação Técnica Persistida
 Próximo foco recomendado:
@@ -47,7 +49,6 @@ Próximo foco recomendado:
 
 ## Fase 4: Contratos e Empresa
 - persistir `CompanySettings`;
-- upload/download de contrato assinado;
 - RBAC backend para Empresa;
 - documento contratual gerado a partir de dados persistidos;
 - numeração e ciclo de vida contratual;

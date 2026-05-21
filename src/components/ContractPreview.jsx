@@ -77,7 +77,7 @@ export function ContractPreview({ contract, condominium, companySettings }) {
 
       {contract.signedFile ? (
         <div className="rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-700">
-          Contrato assinado anexado: <strong>{contract.signedFile.name}</strong>
+          Contrato assinado anexado: <strong>{contract.signedFile.fileName ?? contract.signedFile.name}</strong>
         </div>
       ) : null}
     </div>

@@ -267,6 +267,7 @@ Implementadas no backend:
 - `pump_photo`
 - `electrical_panel_photo`
 - `signed_acceptance_term`
+- `signed_contract`
 - `other`
 
 Planejadas:

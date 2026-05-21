@@ -630,8 +630,38 @@ Migrar o módulo de Contratos para persistência real em PostgreSQL/Neon, com en
 - mantém a prévia/impressão HTML atual sem acoplar upload de arquivo.
 
 **Negativas**
-- contrato assinado ainda precisa de fluxo próprio de upload privado;
+- contrato assinado ainda precisa de versionamento, retenção e auditoria documental;
 - geração server-side de PDF e versionamento documental continuam planejados.
+
+---
+
+## DEC-027: Contrato assinado em Vercel Blob privado
+### Status
+Aceita
+
+### Decisão
+Implementar upload, visualização/download e remoção de contrato assinado usando Vercel Blob privado.
+
+Endpoints:
+- `POST /contracts/:id/signed-file`;
+- `GET /contracts/:id/signed-file/download`;
+- `DELETE /contracts/:id/signed-file`.
+
+### Regras
+- Somente `admin` e `manager` podem usar os endpoints.
+- O arquivo fica no Blob privado com `access: 'private'`.
+- O PostgreSQL salva apenas metadados em `File`.
+- `Contract.signedFileId` aponta para o arquivo assinado atual.
+- Download passa por endpoint autenticado, sem expor URL direta do Blob.
+
+### Consequências
+**Positivas**
+- elimina base64/localStorage para contrato assinado;
+- mantém privacidade documental;
+- reaproveita o padrão de upload privado já usado em Visitas.
+
+**Negativas**
+- ainda falta política de retenção, antivírus e versionamento formal de documentos.
 
 ---
 

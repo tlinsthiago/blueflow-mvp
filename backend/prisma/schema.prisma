@@ -32,6 +32,7 @@ enum FileType {
   pump_photo
   electrical_panel_photo
   signed_acceptance_term
+  signed_contract
   other
 }
 

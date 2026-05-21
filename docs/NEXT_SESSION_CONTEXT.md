@@ -126,6 +126,9 @@ Não deve voltar a ser banco local.
 - `POST /contracts`
 - `PUT /contracts/:id`
 - `DELETE /contracts/:id`
+- `POST /contracts/:id/signed-file`
+- `GET /contracts/:id/signed-file/download`
+- `DELETE /contracts/:id/signed-file`
 
 ## 9. Regras Importantes
 - `admin` e `manager` podem escrever em Condomínios e Técnicos.
@@ -153,7 +156,7 @@ Frontend:
 ## 11. Próxima Sequência Recomendada
 1. Implementar e integrar `CompanySettings`.
 2. Implementar Relatórios vinculados a Visitas.
-3. Implementar upload/download de contrato assinado.
+3. Implementar Relatórios vinculados a Visitas.
 4. Implementar uploads de Contratos/Relatórios conforme necessidade.
 5. Evoluir Dashboard com gráficos simples e filtros por período.
 6. Avaliar React Query para server-state.
