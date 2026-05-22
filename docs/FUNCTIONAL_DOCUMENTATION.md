@@ -171,6 +171,8 @@ Funcionalidades:
 - download/visualização segura do PDF;
 - geração de mensagem pronta para WhatsApp;
 - geração de e-mail com assunto e corpo preenchidos;
+- mensagens não incluem link de download, pois os arquivos são privados;
+- usuário deve baixar o PDF e anexar manualmente no WhatsApp ou e-mail;
 - exclusão controlada de relatório sem excluir a visita;
 - armazenamento do PDF no Vercel Blob privado;
 - metadados do arquivo em `File`;
@@ -192,7 +194,9 @@ Funcionalidades:
 - prévia e impressão HTML do contrato;
 - geração/exportação HTML do documento;
 - upload, visualização/download e remoção de contrato assinado via Vercel Blob privado.
-- geração de mensagem pronta para WhatsApp e e-mail, sem envio automático.
+- geração de mensagem pronta para WhatsApp e e-mail, sem envio automático;
+- mensagens não incluem link de download, pois contratos assinados são arquivos privados;
+- usuário deve baixar o contrato assinado e anexar manualmente no WhatsApp ou e-mail.
 
 Ainda planejado:
 - geração server-side de documento/PDF;

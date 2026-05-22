@@ -103,10 +103,6 @@ export function ReportPreview({ visit, condominium, technician }) {
         </div>
       ) : null}
 
-      <div className="rounded-2xl bg-brand-50 px-4 py-3 text-sm text-brand-800">
-        Notificações: WhatsApp {visit.notifications.whatsapp ? 'agendado' : 'desativado'} e e-mail{' '}
-        {visit.notifications.email ? 'agendado' : 'desativado'}.
-      </div>
     </div>
   );
 }

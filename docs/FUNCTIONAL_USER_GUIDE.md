@@ -192,7 +192,9 @@ Na tela Relatórios, o usuário pode:
 - enviar mensagem pronta por WhatsApp;
 - criar e-mail com assunto e texto preenchidos.
 
-Importante: o sistema prepara a mensagem, mas o envio final é feito pelo aplicativo de WhatsApp ou e-mail do usuário.
+Importante: o sistema prepara a mensagem e, quando houver telefone ou e-mail do responsável do condomínio, já direciona a conversa. O envio final é feito pelo aplicativo de WhatsApp ou e-mail do usuário.
+
+Como os arquivos são privados, a mensagem não leva link de download. Baixe o relatório no sistema e anexe manualmente no WhatsApp ou e-mail.
 
 [INSERIR PRINT DA TELA RELATÓRIOS]
 
@@ -224,6 +226,8 @@ O sistema permite:
 - visualizar ou baixar o contrato assinado;
 - remover o arquivo, conforme permissão;
 - gerar mensagem pronta por WhatsApp ou e-mail.
+
+Como contratos assinados são arquivos privados, a mensagem não leva link de download. Baixe o contrato assinado no sistema e anexe manualmente no WhatsApp ou e-mail.
 
 ## 5. Explicação por tela
 ### Painel
@@ -400,10 +404,13 @@ Provavelmente seu perfil é `collaborator`. Esse perfil não acessa Contratos.
 A gestão de usuários é exclusiva do perfil `admin`.
 
 ### O envio por WhatsApp é automático?
-Não. O sistema prepara a mensagem e abre o WhatsApp para o usuário concluir o envio.
+Não. O sistema prepara a mensagem e abre o WhatsApp para o usuário concluir o envio. Quando houver telefone do responsável do condomínio, a conversa já abre direcionada para esse número.
 
 ### O envio por e-mail é automático?
-Não. O sistema cria um e-mail com assunto e texto preenchidos, mas o usuário precisa revisar e enviar.
+Não. O sistema cria um e-mail com destinatário, assunto e texto preenchidos quando houver e-mail do responsável do condomínio. O usuário precisa revisar, anexar o arquivo e enviar.
+
+### A mensagem inclui link para baixar relatório ou contrato?
+Não. Relatórios e contratos assinados são privados. Baixe o arquivo no sistema e anexe manualmente na conversa ou no e-mail.
 
 ### Posso gerar outro relatório da mesma visita?
 Sim, se seu perfil permitir. A reemissão cria uma nova versão do relatório.
