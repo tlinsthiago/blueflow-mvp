@@ -57,6 +57,7 @@ O sistema atende a operação da empresa **F TEC AUTOMAÇÃO**, centralizando:
 - Upload/download privado de contrato assinado com Vercel Blob.
 - Geração real de Relatório Técnico em PDF a partir de Visitas.
 - Download seguro de PDF de Relatório via Vercel Blob privado.
+- Reemissão versionada e exclusão controlada de Relatórios.
 - Entry point serverless do backend para Vercel.
 - Migrations Prisma.
 - Seed de usuários iniciais.
@@ -126,6 +127,7 @@ Não deve voltar a ser banco local.
 - `GET /reports`
 - `GET /reports/:id`
 - `GET /reports/:id/download`
+- `DELETE /reports/:id`
 
 ### Contratos
 - `GET /contracts`

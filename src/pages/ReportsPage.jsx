@@ -1,5 +1,6 @@
 import { Download, FileText, RefreshCw } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { ConfirmationModal } from '../components/ConfirmationModal';
 import { EmptyState } from '../components/EmptyState';
 import { FilterPanel } from '../components/FilterPanel';
 import { FormField } from '../components/FormField';
@@ -15,7 +16,18 @@ import { getChecklistOverallStatus } from '../utils/visitHelpers';
 const PAGE_SIZE = 6;
 
 export function ReportsPage() {
-  const { reports, visits, condominiums, technicians, domainLoading, domainErrors, loadReports, openReport } = useAppContext();
+  const {
+    reports,
+    visits,
+    condominiums,
+    technicians,
+    domainLoading,
+    domainErrors,
+    loadReports,
+    openReport,
+    deleteReport,
+    canManageReports,
+  } = useAppContext();
   const [filters, setFilters] = useState({
     condominiumId: '',
     technicianId: '',
@@ -26,6 +38,8 @@ export function ReportsPage() {
   });
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [detailsItem, setDetailsItem] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const canManageReportActions = canManageReports();
 
   const reportRows = useMemo(() => {
     const rows = reports
@@ -58,6 +72,13 @@ export function ReportsPage() {
           technician,
           checklistStatus,
           searchText,
+          isLatestVersion: !reports.some(
+            (item) =>
+              item.visitId === report.visitId &&
+              ((item.version ?? 0) > (report.version ?? 0) ||
+                ((item.version ?? 0) === (report.version ?? 0) &&
+                  new Date(item.generatedAt ?? item.createdAt).getTime() > new Date(report.generatedAt ?? report.createdAt).getTime()))
+          ),
         };
       })
       .filter(Boolean);
@@ -207,6 +228,7 @@ export function ReportsPage() {
                       <FileText size={18} className="text-brand-600" />
                       <h3 className="font-semibold text-slate-900">{row.condominium?.name ?? 'Condomínio não identificado'}</h3>
                       <StatusBadge value={row.checklistStatus} />
+                      {row.isLatestVersion ? <StatusBadge value="Mais recente" /> : null}
                     </div>
                     <p className="mt-1 text-sm text-slate-500">
                       Emitido em {formatDateTime(row.report.generatedAt ?? row.report.createdAt)} • Visita em {formatDate(row.visit.visitDate)}
@@ -234,6 +256,15 @@ export function ReportsPage() {
                       <Download size={16} />
                       Abrir PDF
                     </button>
+                    {canManageReportActions ? (
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget(row)}
+                        className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
+                      >
+                        Excluir
+                      </button>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -267,6 +298,22 @@ export function ReportsPage() {
           <ReportPreview visit={detailsItem.visit} condominium={detailsItem.condominium} technician={detailsItem.technician} />
         ) : null}
       </ModalShell>
+
+      <ConfirmationModal
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (deleteTarget) {
+            const deleted = await deleteReport(deleteTarget.report.id);
+            if (deleted) {
+              setDeleteTarget(null);
+            }
+          }
+        }}
+        title="Excluir relatório técnico"
+        description="Esta ação remove apenas a versão selecionada e o PDF vinculado. A visita técnica permanece cadastrada."
+        confirmLabel="Excluir relatório"
+      />
     </div>
   );
 }

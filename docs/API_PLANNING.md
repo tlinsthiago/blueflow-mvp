@@ -132,6 +132,7 @@ Tipos aceitos em `fileType`:
 - `GET /reports/:id`
 - `GET /reports/:id/download`
 - `POST /visits/:id/generate-report`
+- `DELETE /reports/:id`
 
 Filtros:
 - `condominiumId`
@@ -140,14 +141,18 @@ Filtros:
 - `pageSize`
 
 Permissões:
-- `admin`, `manager` e `collaborator`.
+- `admin` e `manager`: gerar, reemitir, listar, baixar e excluir.
+- `collaborator`: listar e baixar; não gera, reemite nem exclui.
 
 Regras:
 - relatório sempre pertence a uma Visita;
-- gerar novamente um relatório da mesma Visita incrementa a versão simples;
+- uma Visita pode possuir múltiplos Relatórios versionados;
+- gerar novamente um relatório da mesma Visita cria nova versão e mantém histórico;
+- a combinação `visitId + version` é única;
 - o PDF é armazenado em Vercel Blob privado;
 - metadados do PDF são salvos em `File` com `fileType`/`category` `technical_report_pdf`;
 - download exige autenticação e passa por endpoint seguro;
+- exclusão remove o Report, tenta remover o PDF do Blob e remove metadados `File`, sem excluir a Visita;
 - envio por e-mail/WhatsApp ainda não foi implementado.
 
 ### Contracts
@@ -188,7 +193,6 @@ Permissão planejada:
 - somente `admin` e `manager`.
 
 ### Reports - próximas extensões
-- `DELETE /reports/:id`
 - envio por e-mail/WhatsApp;
 - templates/versionamento avançado.
 

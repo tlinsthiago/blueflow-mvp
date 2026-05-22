@@ -138,8 +138,11 @@ Implementado com geração real de PDF a partir de Visitas.
 Funcionalidades:
 - geração a partir da visita técnica;
 - vínculo `Visit` → `Report`;
+- histórico de múltiplas versões por visita;
+- reemissão após correção da visita;
 - listagem de relatórios emitidos;
 - download/visualização segura do PDF;
+- exclusão controlada de relatório sem excluir a visita;
 - armazenamento do PDF no Vercel Blob privado;
 - metadados do arquivo em `File`;
 - versão simples do relatório;

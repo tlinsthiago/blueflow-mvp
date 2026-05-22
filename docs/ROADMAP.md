@@ -50,7 +50,9 @@ Entregue:
 Entregue nesta fase:
 - geração e persistência de Relatórios a partir de Visitas;
 - PDF técnico armazenado no Vercel Blob privado;
-- download seguro do PDF.
+- download seguro do PDF;
+- reemissão versionada;
+- exclusão controlada de versões sem excluir a Visita.
 
 ## Fase 4: Contratos e Empresa
 Entregue:
@@ -85,7 +87,8 @@ Entregue:
 - geração server-side de PDF;
 - metadados em `Report` e `File`;
 - download seguro;
-- versão simples.
+- histórico de versões por Visita;
+- exclusão controlada.
 
 Pendente:
 - templates versionados;

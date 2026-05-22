@@ -70,8 +70,10 @@ const visitInclude = {
   files: {
     orderBy: { uploadedAt: 'desc' },
   },
-  report: {
+  reports: {
     include: { file: true },
+    orderBy: { version: 'desc' },
+    take: 1,
   },
 };
 

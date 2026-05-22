@@ -22,11 +22,13 @@ export function VisitsPage() {
     condominiums,
     technicians,
     deleteVisit,
+    deleteReport,
     generateReport,
     openReport,
     domainLoading,
     domainErrors,
     canDeleteVisits,
+    canManageReports,
   } = useAppContext();
   const [filters, setFilters] = useState({
     condominiumId: '',
@@ -39,9 +41,11 @@ export function VisitsPage() {
   const [detailsItem, setDetailsItem] = useState(null);
   const [termItem, setTermItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [reportDeleteTarget, setReportDeleteTarget] = useState(null);
   const [generatingReportId, setGeneratingReportId] = useState('');
   const navigate = useNavigate();
   const canDelete = canDeleteVisits();
+  const canManageReportActions = canManageReports();
 
   const filteredVisits = useMemo(() => {
     return visits.filter((visit) => {
@@ -68,6 +72,17 @@ export function VisitsPage() {
       await generateReport(visit.id);
     } finally {
       setGeneratingReportId('');
+    }
+  }
+
+  async function handleDeleteReport() {
+    if (!reportDeleteTarget?.report?.id) {
+      return;
+    }
+
+    const deleted = await deleteReport(reportDeleteTarget.report.id);
+    if (deleted) {
+      setReportDeleteTarget(null);
     }
   }
 
@@ -193,7 +208,7 @@ export function VisitsPage() {
                       {visit.report ? (
                         <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                           <FileText size={14} />
-                          Relatório técnico gerado
+                          Relatório técnico gerado • versão {visit.report.version ?? 1}
                         </p>
                       ) : null}
                     </div>
@@ -201,16 +216,36 @@ export function VisitsPage() {
                       actions={[
                         { label: 'Ver detalhes', onClick: () => setDetailsItem(visit) },
                         { label: 'Visualizar termo', onClick: () => setTermItem(visit) },
-                        visit.report
-                          ? {
-                              label: 'Abrir relatório',
-                              onClick: () => openReport(visit.report.id),
-                              icon: Download,
-                            }
-                          : {
-                              label: generatingReportId === visit.id ? 'Gerando...' : 'Gerar relatório técnico',
-                              onClick: () => handleGenerateReport(visit),
-                            },
+                        ...(visit.report
+                          ? [
+                              {
+                                label: 'Abrir relatório',
+                                onClick: () => openReport(visit.report.id),
+                                icon: Download,
+                              },
+                            ]
+                          : canManageReportActions
+                          ? [
+                              {
+                                label: generatingReportId === visit.id ? 'Gerando...' : 'Gerar relatório técnico',
+                                onClick: () => handleGenerateReport(visit),
+                              },
+                            ]
+                          : []),
+                        ...(visit.report && canManageReportActions
+                          ? [
+                              {
+                                label: generatingReportId === visit.id ? 'Reemitindo...' : 'Reemitir relatório',
+                                onClick: () => handleGenerateReport(visit),
+                                tone: 'primary',
+                              },
+                              {
+                                label: 'Excluir relatório',
+                                onClick: () => setReportDeleteTarget({ visit, report: visit.report }),
+                                tone: 'danger',
+                              },
+                            ]
+                          : []),
                         { label: 'Editar', onClick: () => navigate(`/app/visits/${visit.id}`) },
                         ...(canDelete ? [{ label: 'Excluir', onClick: () => setDeleteTarget(visit), tone: 'danger' }] : []),
                       ]}
@@ -258,6 +293,15 @@ export function VisitsPage() {
           />
         ) : null}
       </ModalShell>
+
+      <ConfirmationModal
+        open={Boolean(reportDeleteTarget)}
+        onClose={() => setReportDeleteTarget(null)}
+        onConfirm={handleDeleteReport}
+        title="Excluir relatório técnico"
+        description="Esta ação remove apenas o relatório e o PDF vinculado. A visita técnica permanece cadastrada."
+        confirmLabel="Excluir relatório"
+      />
 
       <ConfirmationModal
         open={Boolean(deleteTarget)}

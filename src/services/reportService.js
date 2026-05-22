@@ -18,4 +18,9 @@ export const reportService = {
       method: 'POST',
     });
   },
+  remove(id) {
+    return apiRequest(`${basePath}/${id}`, {
+      method: 'DELETE',
+    });
+  },
 };

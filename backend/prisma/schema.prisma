@@ -130,7 +130,7 @@ model Visit {
   checklistItems   VisitChecklistItem[]
   photos           VisitPhoto[]
   files            File[]
-  report           Report?
+  reports          Report[]
 
   @@index([condominiumId])
   @@index([technicianId])
@@ -168,7 +168,7 @@ model VisitPhoto {
 
 model Report {
   id          String   @id @default(uuid())
-  visitId     String   @unique
+  visitId     String
   fileId      String?  @unique
   version     Int      @default(1)
   generatedAt DateTime @default(now())
@@ -178,6 +178,8 @@ model Report {
   file        File?    @relation("ReportFile", fields: [fileId], references: [id], onDelete: SetNull)
 
   @@index([fileId])
+  @@index([visitId])
+  @@unique([visitId, version])
   @@map("reports")
 }
 

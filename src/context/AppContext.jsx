@@ -132,6 +132,8 @@ function normalizeTechnician(payload) {
 }
 
 function normalizeApiVisit(payload) {
+  const latestReport = payload.report ?? payload.reports?.[0] ?? null;
+
   return normalizeVisit({
     ...payload,
     visitStatus: visitStatusFromApi[payload.status] ?? payload.visitStatus ?? 'Pendente',
@@ -155,7 +157,8 @@ function normalizeApiVisit(payload) {
     acceptanceNotes: payload.acceptanceNotes ?? '',
     files: (payload.files ?? []).map(normalizeVisitFile),
     photos: (payload.files ?? []).filter((file) => file.mimeType?.startsWith('image/')).map(normalizeVisitFile),
-    report: payload.report ? normalizeApiReport(payload.report) : null,
+    report: latestReport ? normalizeApiReport(latestReport) : null,
+    reports: (payload.reports ?? []).map(normalizeApiReport),
   });
 }
 
@@ -246,6 +249,19 @@ function toContractPayload(payload) {
     notes: payload.notes ?? '',
     signedFileId: payload.signedFileId || null,
   };
+}
+
+function getLatestReportForVisit(reports, visitId) {
+  return reports
+    .filter((report) => report.visitId === visitId)
+    .sort((first, second) => {
+      const versionDiff = (second.version ?? 0) - (first.version ?? 0);
+      if (versionDiff !== 0) {
+        return versionDiff;
+      }
+
+      return new Date(second.generatedAt ?? second.createdAt).getTime() - new Date(first.generatedAt ?? first.createdAt).getTime();
+    })[0] ?? null;
 }
 
 function normalizeApiReport(payload) {
@@ -461,6 +477,9 @@ export function AppProvider({ children }) {
         return hasAnyRole(currentUser, fullAccessRoles);
       },
       canDeleteVisitFiles() {
+        return hasAnyRole(currentUser, fullAccessRoles);
+      },
+      canManageReports() {
         return hasAnyRole(currentUser, fullAccessRoles);
       },
       loadCondominiums,
@@ -688,14 +707,15 @@ export function AppProvider({ children }) {
       },
       async generateReport(visitId) {
         try {
+          const hadReport = dataState.reports.some((report) => report.visitId === visitId);
           const response = await reportService.generateFromVisit(visitId);
           const report = normalizeApiReport(response.data);
           setDataState((current) => ({
             ...current,
-            reports: [report, ...current.reports.filter((item) => item.id !== report.id && item.visitId !== report.visitId)],
+            reports: [report, ...current.reports.filter((item) => item.id !== report.id)],
             visits: current.visits.map((visit) => (visit.id === visitId ? { ...visit, report } : visit)),
           }));
-          notify('success', 'Relatório técnico gerado com sucesso.');
+          notify('success', hadReport ? 'Relatório reemitido com sucesso.' : 'Relatório técnico gerado com sucesso.');
           return report;
         } catch (error) {
           notify('error', error.message);
@@ -714,6 +734,31 @@ export function AppProvider({ children }) {
           link.click();
           link.remove();
           window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+          return true;
+        } catch (error) {
+          notify('error', error.message);
+          return false;
+        }
+      },
+      async deleteReport(reportId) {
+        try {
+          const report = dataState.reports.find((item) => item.id === reportId);
+          await reportService.remove(reportId);
+          setDataState((current) => {
+            const nextReports = current.reports.filter((item) => item.id !== reportId);
+            const visitId = report?.visitId;
+
+            return {
+              ...current,
+              reports: nextReports,
+              visits: visitId
+                ? current.visits.map((visit) =>
+                    visit.id === visitId ? { ...visit, report: getLatestReportForVisit(nextReports, visitId) } : visit
+                  )
+                : current.visits,
+            };
+          });
+          notify('success', 'Relatório excluído com sucesso.');
           return true;
         } catch (error) {
           notify('error', error.message);

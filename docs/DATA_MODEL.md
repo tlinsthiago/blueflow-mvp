@@ -138,13 +138,13 @@ Relacionamentos:
 - possui muitos `VisitChecklistItem`;
 - possui muitas `VisitPhoto`;
 - possui muitos `File`;
-- pode possuir um `Report`.
+- pode possuir muitos `Report`.
 
 Status:
 - endpoints backend implementados;
 - integração frontend implementada;
 - uploads de arquivos de visita implementados com Vercel Blob;
-- relatórios ainda pendentes.
+- relatórios técnicos versionados implementados.
 
 ### VisitChecklistItem
 - `id`
@@ -185,9 +185,12 @@ Relacionamentos:
 
 Status:
 - modelado;
-- endpoints de listagem, detalhe, geração e download implementados;
+- endpoints de listagem, detalhe, geração, reemissão, download e exclusão implementados;
 - PDF gerado a partir da Visita;
-- arquivo armazenado em Vercel Blob privado.
+- arquivo armazenado em Vercel Blob privado;
+- uma Visita pode possuir múltiplos Relatórios;
+- `version` é incremental por Visita;
+- exclusão de Relatório não exclui a Visita.
 
 ### Contract
 - `id`

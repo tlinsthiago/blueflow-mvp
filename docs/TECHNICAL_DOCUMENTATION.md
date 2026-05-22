@@ -149,8 +149,9 @@ Observação: endpoints de Visitas existem no backend, com checklist operacional
 - `GET /reports/:id`
 - `GET /reports/:id/download`
 - `POST /visits/:id/generate-report`
+- `DELETE /reports/:id`
 
-Observação: relatórios técnicos são gerados a partir de Visitas, persistem metadados em `Report`/`File` e armazenam o PDF no Vercel Blob privado. O download passa por endpoint autenticado.
+Observação: relatórios técnicos são gerados a partir de Visitas, persistem metadados em `Report`/`File` e armazenam o PDF no Vercel Blob privado. O download passa por endpoint autenticado. Uma Visita pode possuir múltiplas versões de relatório; reemissão cria novo registro e mantém histórico.
 
 ### Contratos
 - `GET /contracts`
@@ -289,11 +290,13 @@ Implementado com:
 - Prisma `File` para metadados do PDF;
 - `GET /reports` e `GET /reports/:id` para consulta;
 - `GET /reports/:id/download` para download/visualização segura.
+- `DELETE /reports/:id` para exclusão controlada do relatório e do PDF vinculado, sem excluir a Visita.
 
 Escopo atual:
 - usa dados temporários centralizados da F TEC AUTOMAÇÃO em `backend/src/config/company.js`;
 - inclui dados do condomínio, técnico, visita, checklist, ações executadas, problemas, melhorias, aceite técnico e relação de anexos;
 - tenta incorporar fotos JPEG/PNG da visita ao PDF;
+- permite reemissão versionada após correção da Visita;
 - não envia e-mail/WhatsApp;
 - não implementa assinatura eletrônica.
 

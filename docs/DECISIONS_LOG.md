@@ -680,11 +680,14 @@ Endpoints:
 
 ### Regras
 - O relatório pertence a uma Visita.
+- Uma Visita pode possuir múltiplos relatórios versionados.
+- Reemitir relatório cria nova versão e mantém histórico.
 - O PDF é gerado no backend com `pdfkit`.
 - O arquivo PDF fica no Vercel Blob privado.
 - O PostgreSQL salva metadados em `Report` e `File`.
 - `File.fileType` usa `technical_report_pdf`.
 - Download passa por endpoint autenticado, sem expor URL direta do Blob.
+- Exclusão controlada remove o `Report`, tenta remover o PDF do Blob e remove o metadado `File`, sem excluir a Visita.
 - Dados institucionais da F TEC AUTOMAÇÃO ficam temporariamente centralizados em configuração de backend, sem implementar `CompanySettings` real nesta etapa.
 
 ### Consequências

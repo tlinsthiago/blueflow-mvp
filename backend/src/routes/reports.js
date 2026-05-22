@@ -1,7 +1,7 @@
 import { del, get, put } from '@vercel/blob';
 import { Readable } from 'node:stream';
 import { z } from 'zod';
-import { requireRoles } from '../lib/authorization.js';
+import { requireRoles, writeRoles } from '../lib/authorization.js';
 import { fail, getPagination, ok, paginationMeta, parseWithSchema } from '../lib/http.js';
 import { generateTechnicalReportPdf } from '../lib/reportPdf.js';
 import { withPrismaRetry } from '../lib/prisma.js';
@@ -173,7 +173,7 @@ export async function reportRoutes(app) {
     return ok(report);
   });
 
-  app.post('/visits/:id/generate-report', { preHandler: [requireRoles(reportAccessRoles)] }, async (request, reply) => {
+  app.post('/visits/:id/generate-report', { preHandler: [requireRoles(writeRoles)] }, async (request, reply) => {
     const parsed = parseWithSchema(idParamsSchema, request.params);
     if (parsed.error) {
       return fail(reply, 400, 'Parâmetros inválidos.', parsed.error);
@@ -194,8 +194,10 @@ export async function reportRoutes(app) {
         files: {
           orderBy: { uploadedAt: 'desc' },
         },
-        report: {
+        reports: {
           include: { file: true },
+          orderBy: { version: 'desc' },
+          take: 1,
         },
       },
     });
@@ -209,7 +211,6 @@ export async function reportRoutes(app) {
     const pdfBuffer = await generateTechnicalReportPdf({ visit, imageAttachments, generatedAt });
     const fileName = reportFileName(visit);
     const storagePath = `reports/${visit.id}/${Date.now()}-${fileName}`;
-    const oldFile = visit.report?.file ?? null;
     let blob = null;
 
     try {
@@ -237,23 +238,17 @@ export async function reportRoutes(app) {
               },
             });
 
-            if (visit.report) {
-              return tx.report.update({
-                where: { id: visit.report.id },
-                data: {
-                  fileId: file.id,
-                  version: visit.report.version + 1,
-                  generatedAt,
-                },
-                include: reportInclude,
-              });
-            }
+            const latestReport = await tx.report.findFirst({
+              where: { visitId: visit.id },
+              orderBy: { version: 'desc' },
+              select: { version: true },
+            });
 
             return tx.report.create({
               data: {
                 visitId: visit.id,
                 fileId: file.id,
-                version: 1,
+                version: (latestReport?.version ?? 0) + 1,
                 generatedAt,
               },
               include: reportInclude,
@@ -261,16 +256,6 @@ export async function reportRoutes(app) {
           }),
         { retries: 1 }
       );
-
-      if (oldFile) {
-        await del(oldFile.url ?? oldFile.publicUrl ?? oldFile.storageKey).catch((error) => {
-          request.log.warn({ event: 'old_report_file_blob_delete_failed', error }, 'failed to delete old report blob');
-        });
-
-        await app.prisma.file.delete({ where: { id: oldFile.id } }).catch((error) => {
-          request.log.warn({ event: 'old_report_file_metadata_delete_failed', error }, 'failed to delete old report file metadata');
-        });
-      }
 
       return reply.code(201).send(ok(report));
     } catch (error) {
@@ -346,5 +331,48 @@ export async function reportRoutes(app) {
 
       return fail(reply, 500, 'Falha ao baixar relatório técnico.');
     }
+  });
+
+  app.delete('/reports/:id', { preHandler: [requireRoles(writeRoles)] }, async (request, reply) => {
+    const parsed = parseWithSchema(idParamsSchema, request.params);
+    if (parsed.error) {
+      return fail(reply, 400, 'Parâmetros inválidos.', parsed.error);
+    }
+
+    const report = await getReportOrFail(app, parsed.data.id, reply);
+    if (!report.id) {
+      return report;
+    }
+
+    if (report.file && process.env.BLOB_READ_WRITE_TOKEN) {
+      await del(report.file.url ?? report.file.publicUrl ?? report.file.storageKey).catch((error) => {
+        request.log.warn(
+          {
+            event: 'report_file_blob_delete_failed',
+            reportId: report.id,
+            fileId: report.file.id,
+            error: {
+              name: error?.name,
+              message: error?.message,
+            },
+          },
+          'failed to delete report file from blob'
+        );
+      });
+    }
+
+    await app.prisma.$transaction(async (tx) => {
+      await tx.report.delete({
+        where: { id: report.id },
+      });
+
+      if (report.file) {
+        await tx.file.delete({
+          where: { id: report.file.id },
+        });
+      }
+    });
+
+    return ok({ id: report.id, visitId: report.visitId });
   });
 }
