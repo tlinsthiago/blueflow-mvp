@@ -20,12 +20,13 @@ O produto nasceu como um MVP frontend-only, com dados em `localStorage`, para va
 - Visitas persistem no backend e usam Vercel Blob privado para anexos.
 - Contratos persistem no backend e usam Vercel Blob privado para contrato assinado.
 - Relatórios técnicos são gerados a partir de Visitas e armazenados como PDF privado.
+- Compartilhamento assistido de Relatórios e Contratos por WhatsApp/e-mail com mensagens prontas.
 - Páginas existentes para Painel, Relatórios, Contratos e Empresa.
 - Componentes reutilizáveis para filtros, cards, modais, ações, uploads privados e prévias.
 
 ### Parcial ou Ainda Não Integrado ao Backend
 - Empresa/Configuração da empresa ainda não persiste no banco.
-- Envio real de e-mail/WhatsApp ainda não foi implementado.
+- Envio automático via WhatsApp Business API, SMTP ou serviço transacional ainda não foi implementado.
 
 ## Contexto de Negócio
 O sistema atende empresas que prestam manutenção hidráulica para condomínios, centralizando:
@@ -142,6 +143,8 @@ Funcionalidades:
 - reemissão após correção da visita;
 - listagem de relatórios emitidos;
 - download/visualização segura do PDF;
+- geração de mensagem pronta para WhatsApp;
+- geração de e-mail com assunto e corpo preenchidos;
 - exclusão controlada de relatório sem excluir a visita;
 - armazenamento do PDF no Vercel Blob privado;
 - metadados do arquivo em `File`;
@@ -149,8 +152,8 @@ Funcionalidades:
 - conteúdo com dados do condomínio, técnico, checklist, ações, problemas, melhorias, aceite técnico e anexos/fotos compatíveis.
 
 Ainda planejado:
-- envio real por WhatsApp;
-- envio real por e-mail;
+- envio automático por WhatsApp Business API;
+- envio automático por SMTP/serviço transacional;
 - templates/versionamento documental mais robustos.
 
 ### Contratos
@@ -163,6 +166,7 @@ Funcionalidades:
 - prévia e impressão HTML do contrato;
 - geração/exportação HTML do documento;
 - upload, visualização/download e remoção de contrato assinado via Vercel Blob privado.
+- geração de mensagem pronta para WhatsApp e e-mail, sem envio automático.
 
 Ainda planejado:
 - geração server-side de documento/PDF;

@@ -1,4 +1,4 @@
-import { PlusCircle } from 'lucide-react';
+import { Mail, MessageCircle, PlusCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ActionButtons } from '../components/ActionButtons';
@@ -15,6 +15,7 @@ import { contractStatuses, serviceTypes } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
 import { createEmptyContract, exportContractDocument, getContractLifecycleStatus, printContractDocument } from '../utils/contractHelpers';
 import { formatCurrency, formatDate, formatInputDate } from '../utils/formatters';
+import { buildContractShareContent, openShareLink } from '../utils/shareHelpers';
 
 export function ContractsPage() {
   const {
@@ -253,6 +254,22 @@ export function ContractsPage() {
                             className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             {signedFileUploadingId === contract.id ? 'Enviando...' : contract.signedFile ? 'Substituir arquivo' : 'Anexar arquivo'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openShareLink(buildContractShareContent({ contract, condominium }).whatsappUrl)}
+                            className="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                          >
+                            <MessageCircle size={16} />
+                            Enviar por WhatsApp
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openShareLink(buildContractShareContent({ contract, condominium }).emailUrl)}
+                            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                          >
+                            <Mail size={16} />
+                            Enviar por e-mail
                           </button>
                           {contract.signedFile ? (
                             <>

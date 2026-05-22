@@ -47,6 +47,7 @@ O MVP original era frontend-only com `localStorage`. Na V1 atual, `localStorage`
 - `src/services`: cliente de API e services de domínio.
 - `src/auth`: regras de permissões do frontend.
 - `src/utils`: helpers de formatação, visitas e contratos.
+- `src/utils/shareHelpers.js`: geração de links `wa.me` e `mailto:` para compartilhamento assistido.
 - `src/data`: catálogos e estruturas herdadas do MVP.
 
 ### Backend
@@ -297,8 +298,18 @@ Escopo atual:
 - inclui dados do condomínio, técnico, visita, checklist, ações executadas, problemas, melhorias, aceite técnico e relação de anexos;
 - tenta incorporar fotos JPEG/PNG da visita ao PDF;
 - permite reemissão versionada após correção da Visita;
-- não envia e-mail/WhatsApp;
+- permite compartilhamento assistido por WhatsApp/e-mail via links gerados no frontend;
+- não envia automaticamente via WhatsApp Business API, SMTP ou serviço transacional;
 - não implementa assinatura eletrônica.
+
+## Compartilhamento Assistido
+Implementado apenas no frontend:
+- Relatórios e Contratos possuem ações "Enviar por WhatsApp" e "Enviar por e-mail";
+- WhatsApp usa `https://wa.me/?text=...`;
+- e-mail usa `mailto:?subject=...&body=...`;
+- as mensagens incluem dados do condomínio, visita/contrato e assinatura institucional da F TEC AUTOMAÇÃO;
+- quando aplicável, o texto inclui link de download autenticado do backend;
+- não há envio automático, fila, webhook, SMTP, WhatsApp Business API ou histórico de envio.
 
 ## Resposta Padrão da API
 ```json
@@ -323,7 +334,7 @@ O backend usa Zod para validar payloads e parâmetros em rotas novas.
 
 ## Riscos Técnicos Atuais
 - Empresa ainda não persiste via API.
-- Envio de Relatórios por WhatsApp/e-mail ainda não foi implementado.
+- Envio automático de Relatórios por WhatsApp/e-mail ainda não foi implementado.
 - Uploads adicionais de Relatórios ainda não foram integrados.
 - Assinatura eletrônica ainda não foi implementada.
 - `AppContext` ainda contém compatibilidade temporária para módulos não migrados.
@@ -336,7 +347,7 @@ O backend usa Zod para validar payloads e parâmetros em rotas novas.
 
 ## Próximas Etapas Técnicas
 1. Integrar Empresa ao backend com RBAC.
-2. Implementar envio real de Relatórios por e-mail/WhatsApp.
+2. Implementar envio automático de Relatórios por e-mail/WhatsApp.
 3. Evoluir templates/versionamento de PDFs.
 4. Implementar exclusão/gestão avançada de Relatórios, se necessário.
 5. Evoluir aceite técnico para assinatura eletrônica.

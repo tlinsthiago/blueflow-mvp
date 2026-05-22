@@ -58,13 +58,14 @@ O sistema atende a operação da empresa **F TEC AUTOMAÇÃO**, centralizando:
 - Geração real de Relatório Técnico em PDF a partir de Visitas.
 - Download seguro de PDF de Relatório via Vercel Blob privado.
 - Reemissão versionada e exclusão controlada de Relatórios.
+- Compartilhamento assistido de Relatórios e Contratos por WhatsApp/e-mail, sem integração automática.
 - Entry point serverless do backend para Vercel.
 - Migrations Prisma.
 - Seed de usuários iniciais.
 
 ### Ainda Não Integrado
 - Empresa.
-- Envio real de e-mail/WhatsApp.
+- Envio automático de e-mail/WhatsApp.
 - Portal do cliente.
 
 ## 5. Perfis
@@ -85,7 +86,7 @@ A persistência operacional principal é o backend.
 - permissões;
 - notificações;
 - cache em memória;
-- carregamento de Condomínios, Técnicos, Visitas e Contratos via API;
+- carregamento de Condomínios, Técnicos, Visitas, Contratos e Relatórios via API;
 - compatibilidade temporária para módulos ainda não migrados.
 
 Não deve voltar a ser banco local.
@@ -164,7 +165,7 @@ Frontend:
 
 ## 11. Próxima Sequência Recomendada
 1. Implementar e integrar `CompanySettings`.
-2. Implementar envio real de Relatórios por e-mail/WhatsApp.
+2. Implementar envio automático de Relatórios por e-mail/WhatsApp.
 3. Evoluir templates/versionamento de PDF.
 4. Implementar uploads adicionais de Relatórios, se o fluxo funcional exigir anexos.
 6. Evoluir Dashboard com gráficos simples e filtros por período.

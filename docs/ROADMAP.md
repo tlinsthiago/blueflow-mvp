@@ -32,10 +32,11 @@ Entregue:
 - CRUD real de Contratos;
 - upload privado de contrato assinado;
 - geração real de Relatório Técnico em PDF.
+- compartilhamento assistido de Relatórios e Contratos por WhatsApp/e-mail.
 
 Pendente nesta fase:
 - Empresa via API;
-- envio real por e-mail/WhatsApp.
+- envio automático por e-mail/WhatsApp.
 
 ## Fase 3: Operação Técnica Persistida Concluída
 Entregue:
@@ -93,8 +94,8 @@ Entregue:
 Pendente:
 - templates versionados;
 - snapshot formal dos dados usados na emissão;
-- envio por e-mail;
-- envio por WhatsApp.
+- envio automático por e-mail;
+- envio automático por WhatsApp Business API.
 
 ## Fase 7: Segurança, Auditoria e Qualidade
 - refresh token ou estratégia de sessão mais robusta;
