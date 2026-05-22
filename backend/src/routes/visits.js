@@ -70,6 +70,9 @@ const visitInclude = {
   files: {
     orderBy: { uploadedAt: 'desc' },
   },
+  report: {
+    include: { file: true },
+  },
 };
 
 function sanitizeFileName(fileName) {

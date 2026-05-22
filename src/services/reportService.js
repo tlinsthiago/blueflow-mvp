@@ -1,4 +1,4 @@
-import { apiRequest } from './apiClient';
+import { apiFileRequest, apiRequest } from './apiClient';
 
 const basePath = '/reports';
 
@@ -10,15 +10,12 @@ export const reportService = {
   get(id) {
     return apiRequest(`${basePath}/${id}`);
   },
-  update(id, payload = {}) {
-    return apiRequest(`${basePath}/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(payload),
-    });
+  download(id) {
+    return apiFileRequest(`${basePath}/${id}/download`);
   },
-  remove(id) {
-    return apiRequest(`${basePath}/${id}`, {
-      method: 'DELETE',
+  generateFromVisit(visitId) {
+    return apiRequest(`/visits/${visitId}/generate-report`, {
+      method: 'POST',
     });
   },
 };

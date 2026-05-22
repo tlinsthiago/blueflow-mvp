@@ -25,49 +25,73 @@ Entregue:
 - frontend com login real;
 - `AppContext` como fachada de sessão/cache;
 - CRUD real de Condomínios;
-- CRUD real de Técnicos.
+- CRUD real de Técnicos;
 - CRUD real de Visitas;
 - upload real de arquivos de Visitas;
 - Dashboard operacional real;
 - CRUD real de Contratos;
-- upload privado de contrato assinado.
+- upload privado de contrato assinado;
+- geração real de Relatório Técnico em PDF.
 
 Pendente nesta fase:
 - Empresa via API;
-- Relatórios via API;
-- Empresa via API;
-- Relatórios via API.
+- envio real por e-mail/WhatsApp.
 
-## Fase 3: Operação Técnica Persistida
-Próximo foco recomendado:
+## Fase 3: Operação Técnica Persistida Concluída
+Entregue:
 - endpoints de Visitas;
 - persistência de checklist;
 - vínculo real com Condomínios e Técnicos;
 - filtros server-side;
-- geração inicial de Relatórios a partir de Visitas;
-- preparação para fotos sem implementar upload local em base64.
+- aceite técnico e termo imprimível;
+- anexos privados de Visitas no Vercel Blob;
+- Dashboard operacional com dados reais.
+
+Entregue nesta fase:
+- geração e persistência de Relatórios a partir de Visitas;
+- PDF técnico armazenado no Vercel Blob privado;
+- download seguro do PDF.
 
 ## Fase 4: Contratos e Empresa
+Entregue:
+- CRUD real de Contratos;
+- vínculo obrigatório com Condomínio;
+- prévia/impressão HTML;
+- upload/download privado de contrato assinado.
+
+Pendente:
 - persistir `CompanySettings`;
 - RBAC backend para Empresa;
-- documento contratual gerado a partir de dados persistidos;
+- geração server-side de documento/PDF;
 - numeração e ciclo de vida contratual;
 - alertas de vencimento futuramente.
 
 ## Fase 5: Uploads e Documentos
-- Vercel Blob ou storage externo equivalente;
-- fotos de visita;
-- contrato assinado;
+Entregue:
+- Vercel Blob privado para anexos de Visitas;
+- Vercel Blob privado para contrato assinado;
 - metadados em `File`;
-- URLs protegidas ou assinadas;
-- remoção segura de arquivos.
+- downloads por endpoints autenticados;
+- remoção segura conforme permissão.
+
+Pendente:
+- uploads de Relatórios, se necessários;
+- política de retenção;
+- antivírus/verificação de arquivos;
+- versionamento documental formal.
 
 ## Fase 6: Relatórios e PDF
+Entregue:
 - geração server-side de PDF;
+- metadados em `Report` e `File`;
+- download seguro;
+- versão simples.
+
+Pendente:
 - templates versionados;
-- snapshot dos dados usados na emissão;
-- download;
-- envio por e-mail futuramente.
+- snapshot formal dos dados usados na emissão;
+- envio por e-mail;
+- envio por WhatsApp.
 
 ## Fase 7: Segurança, Auditoria e Qualidade
 - refresh token ou estratégia de sessão mais robusta;

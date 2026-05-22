@@ -79,6 +79,9 @@ Como gestor, quero abrir o relatório completo para apresentar tecnicamente o at
 - visualização detalhada;
 - checklist, fotos e responsável incluídos.
 
+Status atual:
+- implementado com geração de PDF real a partir da visita e download seguro.
+
 ### Gestão contratual
 Como administrativo, quero cadastrar contratos vinculados ao condomínio para controlar a base contratual.
 
@@ -97,7 +100,7 @@ Como administrativo, quero gerar uma prévia e imprimir o contrato para formaliz
 Como administrativo, quero anexar o contrato assinado para manter o histórico documental do cliente.
 
 **Critérios de aceitação**
-- upload do arquivo;
+- upload privado do arquivo;
 - atualização do status;
 - exibição no contrato.
 
@@ -106,11 +109,13 @@ Como administrador, quero configurar os dados da empresa contratada para reutili
 
 **Critérios de aceitação**
 - tela própria;
-- persistência global;
+- persistência global via backend;
 - uso automático em contratos.
 
+Status atual:
+- planejado; Empresa/Configuração da empresa ainda não persiste no banco.
+
 ## Backlog Futuro
-- autenticação real por perfis;
 - portal do cliente;
 - renovação contratual automática;
 - alerta de vencimento;

@@ -18,8 +18,8 @@
 - páginas: várias listagens e seções.
 
 ### FileUploader
-- propósito: upload de arquivo único.
-- páginas: contratos, detalhe do condomínio.
+- propósito: upload de arquivo único para fluxos com backend/storage privado.
+- páginas: contratos.
 
 ### FilterPanel
 - propósito: painel de filtros.
@@ -38,12 +38,13 @@
 - páginas: praticamente todas as páginas internas.
 
 ### PhotoUploader
-- propósito: upload múltiplo de fotos.
+- propósito: upload de anexos/fotos de Visitas com storage privado.
 - páginas: formulário de visita.
 
 ### ReportPreview
 - propósito: visualização consolidada do relatório.
 - páginas: visitas, formulário de visita, relatórios.
+- status: usado como resumo visual; o PDF real é gerado/downloadado pelo backend.
 
 ### SectionCard
 - propósito: agrupamento visual por seção.

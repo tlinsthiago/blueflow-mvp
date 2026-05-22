@@ -21,6 +21,7 @@
     "@vercel/blob": "^2.3.3",
     "argon2": "^0.41.1",
     "fastify": "^5.3.3",
+    "pdfkit": "^0.18.0",
     "zod": "^3.25.28"
   },
   "devDependencies": {

@@ -1,6 +1,5 @@
+import { Download, FileText, RefreshCw } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { ActionButtons } from '../components/ActionButtons';
-import { ConfirmationModal } from '../components/ConfirmationModal';
 import { EmptyState } from '../components/EmptyState';
 import { FilterPanel } from '../components/FilterPanel';
 import { FormField } from '../components/FormField';
@@ -9,21 +8,17 @@ import { PageHeader } from '../components/PageHeader';
 import { ReportPreview } from '../components/ReportPreview';
 import { SectionCard } from '../components/SectionCard';
 import { StatusBadge } from '../components/StatusBadge';
-import { serviceTypes } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
-import { formatDate, isWithinDateRange } from '../utils/formatters';
+import { formatDate, formatDateTime, isWithinDateRange } from '../utils/formatters';
 import { getChecklistOverallStatus } from '../utils/visitHelpers';
-import { useNavigate } from 'react-router-dom';
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 6;
 
 export function ReportsPage() {
-  const { reports, visits, condominiums, technicians, deleteReport, updateReport } = useAppContext();
+  const { reports, visits, condominiums, technicians, domainLoading, domainErrors, loadReports, openReport } = useAppContext();
   const [filters, setFilters] = useState({
     condominiumId: '',
     technicianId: '',
-    serviceType: '',
-    checklistStatus: '',
     startDate: '',
     endDate: '',
     search: '',
@@ -31,50 +26,57 @@ export function ReportsPage() {
   });
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [detailsItem, setDetailsItem] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const navigate = useNavigate();
 
   const reportRows = useMemo(() => {
     const rows = reports
       .map((report) => {
-        const visit = visits.find((item) => item.id === report.visitId);
+        const visit = report.visit ?? visits.find((item) => item.id === report.visitId);
         if (!visit) {
           return null;
         }
 
-        const condominium = condominiums.find((item) => item.id === visit.condominiumId);
-        const technician = technicians.find((item) => item.id === visit.technicianId);
-        const checklistStatus = getChecklistOverallStatus(visit.checklist);
+        const condominium = visit.condominium ?? condominiums.find((item) => item.id === visit.condominiumId);
+        const technician = visit.technician ?? technicians.find((item) => item.id === visit.technicianId);
+        const checklistStatus = getChecklistOverallStatus(visit.checklist ?? []);
+        const searchText = [
+          condominium?.name,
+          technician?.name,
+          visit.serviceType,
+          visit.actionsPerformed,
+          visit.outsideScope,
+          visit.improvements,
+          report.file?.fileName,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+
         return {
           report,
           visit,
           condominium,
           technician,
           checklistStatus,
-          summarySearch: [visit.actionsPerformed, visit.outsideScope, visit.improvements]
-            .join(' ')
-            .toLowerCase(),
+          searchText,
         };
       })
       .filter(Boolean);
 
     const search = filters.search.trim().toLowerCase();
-
     const filtered = rows.filter((row) => {
       const matchesCondominium = !filters.condominiumId || row.condominium?.id === filters.condominiumId;
       const matchesTechnician = !filters.technicianId || row.technician?.id === filters.technicianId;
-      const matchesServiceType = !filters.serviceType || row.visit.serviceType === filters.serviceType;
-      const matchesChecklistStatus = !filters.checklistStatus || row.checklistStatus === filters.checklistStatus;
-      const matchesDate = isWithinDateRange(row.visit.visitDate, filters.startDate, filters.endDate);
-      const matchesSearch = !search || row.summarySearch.includes(search);
-      return matchesCondominium && matchesTechnician && matchesServiceType && matchesChecklistStatus && matchesDate && matchesSearch;
+      const matchesDate = isWithinDateRange(row.report.generatedAt ?? row.report.createdAt, filters.startDate, filters.endDate);
+      const matchesSearch = !search || row.searchText.includes(search);
+
+      return matchesCondominium && matchesTechnician && matchesDate && matchesSearch;
     });
 
-    filtered.sort((a, b) =>
-      filters.sorting === 'antigos'
-        ? new Date(a.visit.visitDate).getTime() - new Date(b.visit.visitDate).getTime()
-        : new Date(b.visit.visitDate).getTime() - new Date(a.visit.visitDate).getTime()
-    );
+    filtered.sort((a, b) => {
+      const firstDate = new Date(a.report.generatedAt ?? a.report.createdAt).getTime();
+      const secondDate = new Date(b.report.generatedAt ?? b.report.createdAt).getTime();
+      return filters.sorting === 'antigos' ? firstDate - secondDate : secondDate - firstDate;
+    });
 
     return filtered;
   }, [condominiums, filters, reports, technicians, visits]);
@@ -84,8 +86,18 @@ export function ReportsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Relatórios"
-        description="Consulta escalável com filtros, ordenação e visualização resumida antes de abrir o relatório completo."
+        title="Relatórios técnicos"
+        description="Documentos profissionais gerados a partir das visitas, com PDF seguro para consulta e entrega ao condomínio."
+        actions={
+          <button
+            type="button"
+            onClick={() => loadReports()}
+            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            <RefreshCw size={18} />
+            Atualizar
+          </button>
+        }
       />
 
       <FilterPanel title="Filtros de relatórios">
@@ -123,37 +135,7 @@ export function ReportsPage() {
             ))}
           </select>
         </FormField>
-        <FormField label="Tipo de serviço">
-          <select
-            value={filters.serviceType}
-            onChange={(event) => {
-              setFilters((current) => ({ ...current, serviceType: event.target.value }));
-              setVisibleCount(PAGE_SIZE);
-            }}
-            className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
-          >
-            <option value="">Todos</option>
-            {serviceTypes.map((serviceType) => (
-              <option key={serviceType}>{serviceType}</option>
-            ))}
-          </select>
-        </FormField>
-        <FormField label="Status do checklist">
-          <select
-            value={filters.checklistStatus}
-            onChange={(event) => {
-              setFilters((current) => ({ ...current, checklistStatus: event.target.value }));
-              setVisibleCount(PAGE_SIZE);
-            }}
-            className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
-          >
-            <option value="">Todos</option>
-            <option>Normal</option>
-            <option>Atenção</option>
-            <option>Crítico</option>
-          </select>
-        </FormField>
-        <FormField label="Data inicial">
+        <FormField label="Emissão inicial">
           <input
             type="date"
             value={filters.startDate}
@@ -164,7 +146,7 @@ export function ReportsPage() {
             className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
           />
         </FormField>
-        <FormField label="Data final">
+        <FormField label="Emissão final">
           <input
             type="date"
             value={filters.endDate}
@@ -175,14 +157,14 @@ export function ReportsPage() {
             className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
           />
         </FormField>
-        <FormField label="Buscar por texto">
+        <FormField label="Buscar">
           <input
             value={filters.search}
             onChange={(event) => {
               setFilters((current) => ({ ...current, search: event.target.value }));
               setVisibleCount(PAGE_SIZE);
             }}
-            placeholder="Observação, problema ou melhoria"
+            placeholder="Condomínio, técnico ou conteúdo técnico"
             className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-500"
           />
         </FormField>
@@ -201,36 +183,58 @@ export function ReportsPage() {
         </FormField>
       </FilterPanel>
 
-      <SectionCard title="Resumo dos relatórios" subtitle={`${reportRows.length} relatório(s) disponível(is) conforme os filtros aplicados.`}>
-        {visibleReports.length ? (
+      {domainErrors.reports ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+          {domainErrors.reports}
+        </div>
+      ) : null}
+
+      <SectionCard
+        title="Relatórios emitidos"
+        subtitle={domainLoading.reports ? 'Carregando relatórios...' : `${reportRows.length} relatório(s) encontrado(s).`}
+      >
+        {domainLoading.reports ? (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-600">
+            Carregando relatórios técnicos...
+          </div>
+        ) : visibleReports.length ? (
           <div className="space-y-4">
             {visibleReports.map((row) => (
               <div key={row.report.id} className="rounded-2xl border border-slate-200 p-4">
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
+                      <FileText size={18} className="text-brand-600" />
                       <h3 className="font-semibold text-slate-900">{row.condominium?.name ?? 'Condomínio não identificado'}</h3>
                       <StatusBadge value={row.checklistStatus} />
                     </div>
                     <p className="mt-1 text-sm text-slate-500">
-                      Data da visita: {formatDate(row.visit.visitDate)} • Técnico: {row.technician?.name ?? 'Não identificado'}
+                      Emitido em {formatDateTime(row.report.generatedAt ?? row.report.createdAt)} • Visita em {formatDate(row.visit.visitDate)}
                     </p>
-                    <p className="mt-2 text-sm text-slate-600">Tipo de serviço: {row.visit.serviceType}</p>
-                    <p className="mt-1 text-sm text-slate-500">Fotos anexadas: {row.visit.photos?.length ?? 0}</p>
+                    <p className="mt-2 text-sm text-slate-600">
+                      Técnico: {row.technician?.name ?? 'Não identificado'} • Serviço: {row.visit.serviceType}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Versão {row.report.version ?? 1} • {row.report.file?.fileName ?? 'PDF disponível'}
+                    </p>
                   </div>
-                  <ActionButtons
-                    actions={[
-                      { label: 'Ver relatório completo', onClick: () => setDetailsItem(row) },
-                      {
-                        label: 'Editar',
-                        onClick: () => {
-                          updateReport(row.report.id);
-                          navigate(`/app/visits/${row.visit.id}`);
-                        },
-                      },
-                      { label: 'Excluir', onClick: () => setDeleteTarget(row), tone: 'danger' },
-                    ]}
-                  />
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDetailsItem(row)}
+                      className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                      Ver resumo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openReport(row.report.id)}
+                      className="inline-flex items-center gap-2 rounded-2xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-500"
+                    >
+                      <Download size={16} />
+                      Abrir PDF
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -247,8 +251,8 @@ export function ReportsPage() {
           </div>
         ) : (
           <EmptyState
-            title="Nenhum relatório encontrado"
-            description="Ajuste os filtros ou gere novos relatórios a partir das visitas técnicas concluídas."
+            title="Nenhum relatório técnico encontrado"
+            description="Gere relatórios a partir das visitas técnicas para disponibilizar PDFs profissionais ao condomínio."
           />
         )}
       </SectionCard>
@@ -256,27 +260,13 @@ export function ReportsPage() {
       <ModalShell
         open={Boolean(detailsItem)}
         onClose={() => setDetailsItem(null)}
-        title="Relatório completo"
-        subtitle="Visualização detalhada para consulta operacional e apresentação ao cliente."
+        title="Resumo do relatório"
+        subtitle="Consulta rápida dos dados usados na emissão do PDF técnico."
       >
         {detailsItem ? (
           <ReportPreview visit={detailsItem.visit} condominium={detailsItem.condominium} technician={detailsItem.technician} />
         ) : null}
       </ModalShell>
-
-      <ConfirmationModal
-        open={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={() => {
-          if (deleteTarget) {
-            deleteReport(deleteTarget.report.id);
-            setDeleteTarget(null);
-          }
-        }}
-        title="Excluir relatório"
-        description="Esta ação remove apenas o relatório da listagem. A visita técnica permanece cadastrada para futuras edições e nova geração."
-        confirmLabel="Excluir"
-      />
     </div>
   );
 }

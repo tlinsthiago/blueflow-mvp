@@ -17,18 +17,14 @@ O produto nasceu como um MVP frontend-only, com dados em `localStorage`, para va
 - Gestão de Técnicos integrada ao backend.
 - Gestão de Visitas integrada ao backend, com checklist e aceite técnico.
 - Gestão de Contratos integrada ao backend.
-- Upload, visualização/download e remoção de contrato assinado usando storage privado.
-- Upload real de fotos e termo assinado em Visitas usando Vercel Blob.
+- Visitas persistem no backend e usam Vercel Blob privado para anexos.
+- Contratos persistem no backend e usam Vercel Blob privado para contrato assinado.
+- Relatórios técnicos são gerados a partir de Visitas e armazenados como PDF privado.
 - Páginas existentes para Painel, Relatórios, Contratos e Empresa.
-- Componentes reutilizáveis para filtros, cards, modais, ações, upload local e prévias.
+- Componentes reutilizáveis para filtros, cards, modais, ações, uploads privados e prévias.
 
 ### Parcial ou Ainda Não Integrado ao Backend
-- Painel ainda depende do cache frontend e dos módulos já carregados.
-- Relatórios ainda não persistem no banco.
-- Relatórios ainda não persistem no banco.
 - Empresa/Configuração da empresa ainda não persiste no banco.
-- Uploads de Visitas já usam storage externo; uploads de Contratos e Relatórios ainda não foram implementados.
-- Geração de PDF real ainda não foi implementada.
 - Envio real de e-mail/WhatsApp ainda não foi implementado.
 
 ## Contexto de Negócio
@@ -134,25 +130,40 @@ Funcionalidades:
 
 Ainda planejado:
 - assinatura eletrônica;
-- geração de relatório pelo backend.
+- envio real de relatório por e-mail/WhatsApp.
 
 ### Relatórios
-Tela e componentes existem no frontend, mas a persistência real no backend ainda não foi integrada.
+Implementado com geração real de PDF a partir de Visitas.
 
-Planejado:
-- listagem server-side;
-- detalhamento a partir de visita;
-- geração de PDF real;
-- versionamento e download.
+Funcionalidades:
+- geração a partir da visita técnica;
+- vínculo `Visit` → `Report`;
+- listagem de relatórios emitidos;
+- download/visualização segura do PDF;
+- armazenamento do PDF no Vercel Blob privado;
+- metadados do arquivo em `File`;
+- versão simples do relatório;
+- conteúdo com dados do condomínio, técnico, checklist, ações, problemas, melhorias, aceite técnico e anexos/fotos compatíveis.
+
+Ainda planejado:
+- envio real por WhatsApp;
+- envio real por e-mail;
+- templates/versionamento documental mais robustos.
 
 ### Contratos
-Tela e prévia de contrato existem no frontend, mas a persistência real no backend ainda não foi integrada.
+Implementado com persistência real via API e upload privado de contrato assinado.
 
-Planejado:
-- CRUD via API;
-- restrição a `admin` e `manager`;
+Funcionalidades:
+- listagem;
+- cadastro, edição e exclusão para `admin` e `manager`;
+- vínculo obrigatório com Condomínio;
+- prévia e impressão HTML do contrato;
+- geração/exportação HTML do documento;
+- upload, visualização/download e remoção de contrato assinado via Vercel Blob privado.
+
+Ainda planejado:
 - geração server-side de documento/PDF;
-- upload de contrato assinado via Vercel Blob ou storage equivalente.
+- versionamento formal do contrato assinado.
 
 ### Empresa
 Tela existe no frontend, mas a persistência real no backend ainda não foi integrada.
@@ -169,7 +180,9 @@ Planejado:
 - Uma Visita possui itens de checklist.
 - Uma Visita pode possuir fotos.
 - Arquivos de Visita são armazenados no Vercel Blob; o banco guarda apenas metadados.
+- Arquivos PDF de Relatórios são armazenados no Vercel Blob privado; o banco guarda apenas metadados e vínculo com a Visita.
 - Um Contrato pertence a um Condomínio.
+- Um Contrato pode possuir um contrato assinado vigente, armazenado no Vercel Blob privado com metadados no banco.
 - Não excluir Condomínio com Visitas ou Contratos vinculados.
 - Não excluir Técnico com Visitas vinculadas.
 - `collaborator` não pode criar, editar ou excluir Condomínios e Técnicos.

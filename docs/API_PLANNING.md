@@ -88,6 +88,7 @@ Regra de integridade:
 - `POST /visits`
 - `PUT /visits/:id`
 - `DELETE /visits/:id`
+- `POST /visits/:id/generate-report`
 - `GET /visits/:id/files`
 - `POST /visits/:id/files`
 - `GET /visits/:id/files/:fileId/download`
@@ -126,6 +127,29 @@ Tipos aceitos em `fileType`:
 - `signed_acceptance_term`
 - `other`
 
+### Reports
+- `GET /reports`
+- `GET /reports/:id`
+- `GET /reports/:id/download`
+- `POST /visits/:id/generate-report`
+
+Filtros:
+- `condominiumId`
+- `technicianId`
+- `page`
+- `pageSize`
+
+Permissões:
+- `admin`, `manager` e `collaborator`.
+
+Regras:
+- relatório sempre pertence a uma Visita;
+- gerar novamente um relatório da mesma Visita incrementa a versão simples;
+- o PDF é armazenado em Vercel Blob privado;
+- metadados do PDF são salvos em `File` com `fileType`/`category` `technical_report_pdf`;
+- download exige autenticação e passa por endpoint seguro;
+- envio por e-mail/WhatsApp ainda não foi implementado.
+
 ### Contracts
 - `GET /contracts`
 - `GET /contracts/:id`
@@ -151,7 +175,7 @@ Regras:
 - contrato sempre pertence a um Condomínio;
 - não criar ou editar contrato com Condomínio inexistente;
 - não excluir contrato inexistente;
-- `signedFileId` permanece preservado para upload de contrato assinado em etapa futura;
+- `signedFileId` referencia o arquivo atual de contrato assinado, quando houver;
 - upload/download de contrato assinado usa Vercel Blob privado e endpoint autenticado;
 - o banco salva apenas metadados em `File`, com `fileType`/`category` `signed_contract`.
 
@@ -163,15 +187,10 @@ Regras:
 Permissão planejada:
 - somente `admin` e `manager`.
 
-### Visits - Próximas extensões
-- `POST /visits/:id/generate-report`
-
-### Reports
-- `GET /reports`
-- `GET /reports/:id`
-- `PUT /reports/:id`
+### Reports - próximas extensões
 - `DELETE /reports/:id`
-- `GET /reports/:id/download`
+- envio por e-mail/WhatsApp;
+- templates/versionamento avançado.
 
 ### Contracts - próximas extensões
 - `GET /contracts/:id/document`
@@ -182,22 +201,27 @@ Permissão planejada:
 
 ### Uploads
 Uploads específicos de Visitas já existem em `/visits/:id/files`.
+Upload/download de contrato assinado já existe em `/contracts/:id/signed-file`.
 
 Endpoints genéricos ainda planejados:
 - `POST /uploads`
 - `GET /uploads/:id`
 - `DELETE /uploads/:id`
 
-Storage atual para Visitas:
-- Vercel Blob.
+Storage atual para Visitas e contrato assinado:
+- Vercel Blob privado.
+
+Storage atual para Relatórios:
+- Vercel Blob privado para PDFs gerados.
 
 Categorias previstas:
 - `reservoir_photo`
 - `pump_photo`
 - `electrical_panel_photo`
 - `signed_acceptance_term`
+- `signed_contract`
+- `technical_report_pdf`
 - `other`
-- `contract-signed`
 - `report-attachment`
 
 ## Payloads Atuais
@@ -273,6 +297,5 @@ O frontend já consome:
 - `condominiumService`;
 - `technicianService`.
 - `visitService`, incluindo anexos reais de visitas.
-- `contractService`, com CRUD real de Contratos.
-
-Service de Relatórios já existe como estrutura base, mas ainda não está conectado a endpoints implementados.
+- `contractService`, com CRUD real de Contratos e contrato assinado privado.
+- `reportService`, com listagem, geração a partir de Visita e download de PDF privado.

@@ -33,6 +33,7 @@ enum FileType {
   electrical_panel_photo
   signed_acceptance_term
   signed_contract
+  technical_report_pdf
   other
 }
 
@@ -166,12 +167,17 @@ model VisitPhoto {
 }
 
 model Report {
-  id        String   @id @default(uuid())
-  visitId   String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  visit     Visit    @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  id          String   @id @default(uuid())
+  visitId     String   @unique
+  fileId      String?  @unique
+  version     Int      @default(1)
+  generatedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  visit       Visit    @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  file        File?    @relation("ReportFile", fields: [fileId], references: [id], onDelete: SetNull)
 
+  @@index([fileId])
   @@map("reports")
 }
 
@@ -220,6 +226,7 @@ model File {
   visit           Visit?       @relation(fields: [visitId], references: [id], onDelete: Cascade)
   visitPhotos     VisitPhoto[]
   signedContracts Contract[]   @relation("ContractSignedFile")
+  reports         Report[]     @relation("ReportFile")
 
   @@index([visitId])
   @@index([fileType])

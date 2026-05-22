@@ -31,6 +31,8 @@ O `localStorage` não é mais a persistência operacional principal. Ele guarda 
 - Gestão real de visitas técnicas via API
 - Gestão real de contratos via API
 - Upload privado de contrato assinado via Vercel Blob
+- Geração real de relatório técnico em PDF a partir de visitas
+- Download seguro de relatórios via Vercel Blob privado
 - Checklist técnico hidráulico persistido
 - Termo de instalação e aceite técnico imprimível
 - RBAC com perfis `admin`, `manager` e `collaborator`
@@ -39,10 +41,7 @@ O `localStorage` não é mais a persistência operacional principal. Ele guarda 
 ## Funcionalidades futuras
 
 - Empresa via API
-- Relatórios via API
 - Uploads de Relatórios
-- Upload persistido em Vercel Blob ou storage externo equivalente
-- Geração real de PDF
 - Envio de notificações por WhatsApp e e-mail
 - Portal do cliente
 - PWA/mobile para equipe de campo
@@ -101,5 +100,6 @@ A pasta [docs](./docs/README.md) concentra a documentação funcional, técnica,
 - O backend já existe em `backend`.
 - A autenticação real usa JWT.
 - Condomínios, Técnicos, Visitas e Contratos já usam API e PostgreSQL.
-- Empresa, Relatórios e uploads de Relatórios ainda seguem como próximas etapas.
+- Visitas, contrato assinado e PDFs de Relatórios já usam Vercel Blob privado para arquivos.
+- Empresa, envio de Relatórios e uploads adicionais de Relatórios ainda seguem como próximas etapas.
 - O projeto está preparado para evolução incremental, sem perda do contexto funcional atual.

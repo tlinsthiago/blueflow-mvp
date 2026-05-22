@@ -28,10 +28,13 @@ O MVP original era frontend-only com `localStorage`. Na V1 atual, `localStorage`
 - JWT com `@fastify/jwt`
 - Hash de senha com Argon2
 - Validação com Zod
+- Geração de PDF com `pdfkit`
 
 ### Storage
-- Vercel Blob privado para arquivos de Visitas.
-- Uploads de Contratos, Relatórios e demais anexos ainda serão evoluídos por módulo.
+- Vercel Blob privado para anexos de Visitas.
+- Vercel Blob privado para contrato assinado em Contratos.
+- Vercel Blob privado para PDFs de Relatórios técnicos.
+- Uploads de anexos adicionais de Relatórios ainda serão evoluídos por módulo.
 
 ## Estrutura de Pastas
 ### Frontend
@@ -95,10 +98,10 @@ O `AppContext` deixou de ser persistência principal e passou a atuar como facha
 - expõe `currentUser`, `token`, `isAuthenticated`, `authLoading`;
 - centraliza notificações;
 - expõe helpers de permissão;
-- carrega Condomínios, Técnicos e Visitas via API;
+- carrega Condomínios, Técnicos, Visitas, Contratos e Relatórios via API;
 - mantém cache em memória para os dados carregados;
 - atualiza cache após operações confirmadas pela API;
-- mantém métodos temporários em memória para módulos ainda não integrados.
+- mantém compatibilidade temporária para módulos ainda não integrados, como Empresa e Relatórios.
 
 Essa abordagem evita quebrar as páginas existentes enquanto a migração completa dos CRUDs ocorre por etapas.
 
@@ -133,12 +136,21 @@ Essa abordagem evita quebrar as páginas existentes enquanto a migração comple
 - `POST /visits`
 - `PUT /visits/:id`
 - `DELETE /visits/:id`
+- `POST /visits/:id/generate-report`
 - `GET /visits/:id/files`
 - `POST /visits/:id/files`
 - `GET /visits/:id/files/:fileId/download`
 - `DELETE /visits/:id/files/:fileId`
 
 Observação: endpoints de Visitas existem no backend, com checklist operacional básico, e o frontend já está integrado para listar, criar, editar e excluir conforme permissão.
+
+### Relatórios
+- `GET /reports`
+- `GET /reports/:id`
+- `GET /reports/:id/download`
+- `POST /visits/:id/generate-report`
+
+Observação: relatórios técnicos são gerados a partir de Visitas, persistem metadados em `Report`/`File` e armazenam o PDF no Vercel Blob privado. O download passa por endpoint autenticado.
 
 ### Contratos
 - `GET /contracts`
@@ -154,10 +166,9 @@ Observação: endpoints de Contratos existem no backend, com persistência em Po
 
 ## Endpoints Planejados
 - Empresa: `GET /company`, `PUT /company`.
-- Visitas: geração de relatório.
-- Relatórios: listagem, detalhe, atualização, exclusão e download/PDF.
-- Contratos: CRUD, documento, impressão/PDF e upload de assinado.
-- Uploads: envio, consulta e remoção de arquivos.
+- Relatórios: exclusão, anexos adicionais, templates avançados e envio.
+- Contratos: geração server-side de documento/PDF e versionamento formal.
+- Uploads: anexos de Relatórios e demais categorias futuras.
 
 ## Deploy
 ### Backend na Vercel
@@ -171,7 +182,7 @@ Arquivos relevantes:
 Variáveis obrigatórias em produção:
 - `DATABASE_URL`: connection string do PostgreSQL Neon.
 - `JWT_SECRET`: segredo longo e privado para assinatura dos tokens.
-- `BLOB_READ_WRITE_TOKEN`: token do Vercel Blob usado pelos uploads de Visitas.
+- `BLOB_READ_WRITE_TOKEN`: token do Vercel Blob usado pelos uploads privados de Visitas, contrato assinado e PDFs de Relatórios.
 
 Variáveis recomendadas:
 - `JWT_EXPIRES_IN`: tempo de expiração do token, por exemplo `1h`.
@@ -229,9 +240,12 @@ Persistência operacional real implementada até agora:
 - itens de checklist de visita.
 - campos de aceite técnico da visita.
 - arquivos de Visitas, com conteúdo no Vercel Blob e metadados em `File`.
+- contratos, incluindo referência ao contrato assinado atual.
+- contrato assinado, com conteúdo no Vercel Blob e metadados em `File`.
+- relatórios técnicos gerados a partir de Visitas, com PDF no Vercel Blob e metadados em `Report`/`File`.
 - indicadores operacionais do Dashboard via agregações do backend.
 
-Empresa e Relatórios estão modelados ou planejados, mas os endpoints e a integração frontend ainda não foram concluídos. Contratos já possuem CRUD real integrado; upload de contrato assinado permanece planejado.
+Empresa ainda está modelada, mas os endpoints e a integração frontend ainda não foram concluídos. Contratos já possuem CRUD real integrado e upload/download privado de contrato assinado.
 
 ## Uploads de Visitas
 Implementado com:
@@ -257,6 +271,32 @@ Regras:
 - `admin` e `manager`: enviam, listam e excluem;
 - `collaborator`: envia e lista, mas não exclui.
 
+## Upload de Contrato Assinado
+Implementado com o mesmo princípio de privacidade dos anexos de Visitas:
+- o arquivo fica no Vercel Blob privado;
+- metadados são salvos em `File`;
+- `Contract.signedFileId` referencia o arquivo assinado atual;
+- visualização/download passam por `GET /contracts/:id/signed-file/download`;
+- `admin` e `manager` podem enviar, visualizar/baixar e remover;
+- `collaborator` não acessa Contratos.
+
+## Relatórios Técnicos em PDF
+Implementado com:
+- `POST /visits/:id/generate-report` para transformar uma Visita em relatório técnico;
+- `pdfkit` para montar o PDF no backend;
+- `@vercel/blob` em store privado para armazenar o PDF;
+- Prisma `Report` para vínculo com a Visita, versão e data de geração;
+- Prisma `File` para metadados do PDF;
+- `GET /reports` e `GET /reports/:id` para consulta;
+- `GET /reports/:id/download` para download/visualização segura.
+
+Escopo atual:
+- usa dados temporários centralizados da F TEC AUTOMAÇÃO em `backend/src/config/company.js`;
+- inclui dados do condomínio, técnico, visita, checklist, ações executadas, problemas, melhorias, aceite técnico e relação de anexos;
+- tenta incorporar fotos JPEG/PNG da visita ao PDF;
+- não envia e-mail/WhatsApp;
+- não implementa assinatura eletrônica.
+
 ## Resposta Padrão da API
 ```json
 {
@@ -279,23 +319,25 @@ O backend usa Zod para validar payloads e parâmetros em rotas novas.
 - Permissões sempre devem ser validadas no backend, mesmo quando já filtradas no frontend.
 
 ## Riscos Técnicos Atuais
-- Relatórios e empresa ainda não persistem via API.
-- Uploads de Relatórios ainda não foram integrados.
+- Empresa ainda não persiste via API.
+- Envio de Relatórios por WhatsApp/e-mail ainda não foi implementado.
+- Uploads adicionais de Relatórios ainda não foram integrados.
 - Assinatura eletrônica ainda não foi implementada.
 - `AppContext` ainda contém compatibilidade temporária para módulos não migrados.
 - Falta React Query ou camada dedicada de cache server-state.
 - Tokens são armazenados em `localStorage`; no futuro pode ser desejável usar cookie HTTP-only/refresh token.
 - Falta auditoria de ações.
 - Falta estratégia de soft delete.
-- Contratos e relatórios ainda não têm versionamento formal.
+- Contratos e relatórios ainda não têm versionamento formal avançado.
 - Falta observabilidade estruturada no backend.
 
 ## Próximas Etapas Técnicas
 1. Integrar Empresa ao backend com RBAC.
-2. Implementar Relatórios persistidos e geração de PDF.
-3. Implementar Contratos persistidos e upload de assinado.
-4. Evoluir aceite técnico para assinatura eletrônica.
-5. Evoluir Dashboard com gráficos e filtros por período.
-6. Avaliar React Query para server-state.
-7. Adicionar auditoria, logs estruturados e soft delete.
-8. Preparar multitenancy para SaaS.
+2. Implementar envio real de Relatórios por e-mail/WhatsApp.
+3. Evoluir templates/versionamento de PDFs.
+4. Implementar exclusão/gestão avançada de Relatórios, se necessário.
+5. Evoluir aceite técnico para assinatura eletrônica.
+6. Evoluir Dashboard com gráficos e filtros por período.
+7. Avaliar React Query para server-state.
+8. Adicionar auditoria, logs estruturados e soft delete.
+9. Preparar multitenancy para SaaS.

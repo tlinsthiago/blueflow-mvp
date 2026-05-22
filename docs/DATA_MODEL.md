@@ -21,8 +21,11 @@ Persistência real já usada pela aplicação:
 - técnicos;
 - visitas e checklist operacional;
 - arquivos de visitas com metadados no PostgreSQL e conteúdo no Vercel Blob privado.
+- contratos;
+- contrato assinado com metadados no PostgreSQL e conteúdo no Vercel Blob privado.
+- relatórios técnicos vinculados a visitas, com PDF no Vercel Blob privado e metadados no banco.
 
-Relatórios e Empresa ainda não possuem fluxo completo integrado. Contratos já possuem CRUD real; o upload de contrato assinado fica para etapa futura.
+Empresa ainda não possui fluxo completo integrado.
 
 ## Perfis
 ### UserRole
@@ -170,15 +173,21 @@ Status:
 ### Report
 - `id`
 - `visitId`
+- `fileId`
+- `version`
+- `generatedAt`
 - `createdAt`
 - `updatedAt`
 
 Relacionamentos:
 - pertence a uma `Visit`.
+- pode referenciar `File` como PDF gerado.
 
 Status:
 - modelado;
-- endpoints e geração de PDF ainda pendentes.
+- endpoints de listagem, detalhe, geração e download implementados;
+- PDF gerado a partir da Visita;
+- arquivo armazenado em Vercel Blob privado.
 
 ### Contract
 - `id`
@@ -208,7 +217,7 @@ Status:
 - modelado;
 - CRUD backend implementado;
 - frontend integrado via API;
-- `signedFileId` preservado para upload de contrato assinado em etapa futura.
+- `signedFileId` referencia o arquivo atual de contrato assinado, quando houver.
 
 ### File
 - `id`
@@ -231,13 +240,14 @@ Uso atual:
 - foto da bomba;
 - foto do quadro;
 - termo assinado de visita.
+- contrato assinado.
+- PDF de relatório técnico.
 
 Uso planejado:
-- contratos assinados;
 - anexos de relatório.
 
 Status:
-- upload de arquivos de Visitas implementado com Vercel Blob;
+- upload/geração de arquivos de Visitas, contrato assinado e PDF de Relatórios implementados com Vercel Blob privado;
 - acesso aos arquivos passa por endpoint autenticado de download/proxy;
 - o banco salva apenas metadados;
 - nenhum arquivo é salvo no PostgreSQL ou filesystem da Vercel.
@@ -248,6 +258,7 @@ Implementadas no backend:
 - não excluir Técnico com Visitas vinculadas.
 - não criar ou editar Visita com Condomínio inexistente;
 - não criar ou editar Visita com Técnico inexistente.
+- não criar ou editar Contrato com Condomínio inexistente.
 
 ## Enums
 ### VisitStatus
@@ -268,6 +279,7 @@ Implementadas no backend:
 - `electrical_panel_photo`
 - `signed_acceptance_term`
 - `signed_contract`
+- `technical_report_pdf`
 - `other`
 
 Planejadas:

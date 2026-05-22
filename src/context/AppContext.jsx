@@ -8,6 +8,7 @@ import { condominiumService } from '../services/condominiumService';
 import { technicianService } from '../services/technicianService';
 import { visitService } from '../services/visitService';
 import { contractService } from '../services/contractService';
+import { reportService } from '../services/reportService';
 import { fullAccessRoles, hasAnyRole } from '../auth/permissions';
 import { formatCurrencyInput, parseCurrencyValue, parseDateInputToIso } from '../utils/formatters';
 
@@ -40,6 +41,7 @@ const initialDomainLoading = {
   technicians: false,
   visits: false,
   contracts: false,
+  reports: false,
 };
 
 const initialDomainErrors = {
@@ -47,6 +49,7 @@ const initialDomainErrors = {
   technicians: '',
   visits: '',
   contracts: '',
+  reports: '',
 };
 
 const visitStatusToApi = {
@@ -152,6 +155,7 @@ function normalizeApiVisit(payload) {
     acceptanceNotes: payload.acceptanceNotes ?? '',
     files: (payload.files ?? []).map(normalizeVisitFile),
     photos: (payload.files ?? []).filter((file) => file.mimeType?.startsWith('image/')).map(normalizeVisitFile),
+    report: payload.report ? normalizeApiReport(payload.report) : null,
   });
 }
 
@@ -241,6 +245,22 @@ function toContractPayload(payload) {
     status: payload.status,
     notes: payload.notes ?? '',
     signedFileId: payload.signedFileId || null,
+  };
+}
+
+function normalizeApiReport(payload) {
+  const visit = payload.visit ? normalizeApiVisit(payload.visit) : null;
+
+  return {
+    id: payload.id,
+    visitId: payload.visitId,
+    fileId: payload.fileId ?? '',
+    version: payload.version ?? 1,
+    generatedAt: payload.generatedAt ?? payload.createdAt,
+    createdAt: payload.createdAt,
+    updatedAt: payload.updatedAt,
+    file: payload.file ?? null,
+    visit,
   };
 }
 
@@ -355,6 +375,24 @@ export function AppProvider({ children }) {
     }
   }
 
+  async function loadReports() {
+    setDomainLoading((current) => ({ ...current, reports: true }));
+    setDomainErrors((current) => ({ ...current, reports: '' }));
+
+    try {
+      const payload = await reportService.list({ pageSize: 100 });
+      const reports = (payload.data ?? []).map(normalizeApiReport);
+      setDataState((current) => ({ ...current, reports }));
+      return reports;
+    } catch (error) {
+      setDomainErrors((current) => ({ ...current, reports: error.message }));
+      notify('error', error.message);
+      return [];
+    } finally {
+      setDomainLoading((current) => ({ ...current, reports: false }));
+    }
+  }
+
   useEffect(() => {
     if (!isAuthenticated || authLoading) {
       return;
@@ -363,6 +401,7 @@ export function AppProvider({ children }) {
     loadCondominiums();
     loadTechnicians();
     loadVisits();
+    loadReports();
     if (hasAnyRole(currentUser, fullAccessRoles)) {
       loadContracts();
     }
@@ -428,6 +467,7 @@ export function AppProvider({ children }) {
       loadTechnicians,
       loadVisits,
       loadContracts,
+      loadReports,
       async login(credentials) {
         const session = await authService.login(credentials);
         setToken(session.token);
@@ -646,52 +686,39 @@ export function AppProvider({ children }) {
           return false;
         }
       },
-      generateReport(visitId) {
-        const reportExists = dataState.reports.some((report) => report.visitId === visitId);
-        if (reportExists) {
-          notify('success', 'Relatório já estava disponível para esta visita técnica.');
-          return dataState.reports.find((report) => report.visitId === visitId)?.id ?? null;
+      async generateReport(visitId) {
+        try {
+          const response = await reportService.generateFromVisit(visitId);
+          const report = normalizeApiReport(response.data);
+          setDataState((current) => ({
+            ...current,
+            reports: [report, ...current.reports.filter((item) => item.id !== report.id && item.visitId !== report.visitId)],
+            visits: current.visits.map((visit) => (visit.id === visitId ? { ...visit, report } : visit)),
+          }));
+          notify('success', 'Relatório técnico gerado com sucesso.');
+          return report;
+        } catch (error) {
+          notify('error', error.message);
+          throw error;
         }
-
-        const visit = dataState.visits.find((item) => item.id === visitId);
-        if (!visit) {
-          notify('error', 'Visita técnica não encontrada para gerar relatório.');
-          return null;
+      },
+      async openReport(reportId) {
+        try {
+          const blob = await reportService.download(reportId);
+          const objectUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = objectUrl;
+          link.target = '_blank';
+          link.rel = 'noreferrer';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+          return true;
+        } catch (error) {
+          notify('error', error.message);
+          return false;
         }
-
-        const reportId = crypto.randomUUID();
-        setDataState((current) => ({
-          ...current,
-          reports: [
-            {
-              id: reportId,
-              visitId,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            },
-            ...current.reports,
-          ],
-        }));
-        notify('success', 'Relatório gerado com sucesso.');
-        return reportId;
-      },
-      updateReport(id) {
-        setDataState((current) => ({
-          ...current,
-          reports: current.reports.map((item) =>
-            item.id === id ? { ...item, updatedAt: new Date().toISOString() } : item
-          ),
-        }));
-        notify('success', 'Relatório atualizado com sucesso.');
-        return true;
-      },
-      deleteReport(id) {
-        setDataState((current) => ({
-          ...current,
-          reports: current.reports.filter((item) => item.id !== id),
-        }));
-        notify('success', 'Relatório excluído com sucesso.');
-        return true;
       },
       async createContract(payload) {
         try {

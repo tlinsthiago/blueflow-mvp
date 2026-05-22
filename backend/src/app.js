@@ -7,6 +7,7 @@ import { condominiumRoutes } from './routes/condominiums.js';
 import { dashboardRoutes } from './routes/dashboard.js';
 import { contractRoutes } from './routes/contracts.js';
 import { healthRoutes } from './routes/health.js';
+import { reportRoutes } from './routes/reports.js';
 import { technicianRoutes } from './routes/technicians.js';
 import { visitRoutes } from './routes/visits.js';
 import { prisma } from './lib/prisma.js';
@@ -145,6 +146,7 @@ export function buildApp(options = {}) {
   app.register(dashboardRoutes, { prefix: '/dashboard' });
   app.register(contractRoutes, { prefix: '/contracts' });
   app.register(condominiumRoutes, { prefix: '/condominiums' });
+  app.register(reportRoutes);
   app.register(technicianRoutes, { prefix: '/technicians' });
   app.register(visitRoutes, { prefix: '/visits' });
 

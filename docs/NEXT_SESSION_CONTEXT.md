@@ -54,15 +54,16 @@ O sistema atende a operação da empresa **F TEC AUTOMAÇÃO**, centralizando:
 - CRUD real de Contratos no backend e frontend.
 - Termo de instalação e aceite técnico imprimível em Visitas.
 - Upload real de arquivos de Visitas com Vercel Blob.
+- Upload/download privado de contrato assinado com Vercel Blob.
+- Geração real de Relatório Técnico em PDF a partir de Visitas.
+- Download seguro de PDF de Relatório via Vercel Blob privado.
 - Entry point serverless do backend para Vercel.
 - Migrations Prisma.
 - Seed de usuários iniciais.
 
 ### Ainda Não Integrado
 - Empresa.
-- Relatórios.
-- Upload/download de contrato assinado.
-- Geração de PDF.
+- Envio real de e-mail/WhatsApp.
 - Portal do cliente.
 
 ## 5. Perfis
@@ -83,7 +84,7 @@ A persistência operacional principal é o backend.
 - permissões;
 - notificações;
 - cache em memória;
-- carregamento de Condomínios, Técnicos e Visitas via API;
+- carregamento de Condomínios, Técnicos, Visitas e Contratos via API;
 - compatibilidade temporária para módulos ainda não migrados.
 
 Não deve voltar a ser banco local.
@@ -116,9 +117,15 @@ Não deve voltar a ser banco local.
 - `POST /visits`
 - `PUT /visits/:id`
 - `DELETE /visits/:id`
+- `POST /visits/:id/generate-report`
 - `GET /visits/:id/files`
 - `POST /visits/:id/files`
 - `DELETE /visits/:id/files/:fileId`
+
+### Relatórios
+- `GET /reports`
+- `GET /reports/:id`
+- `GET /reports/:id/download`
 
 ### Contratos
 - `GET /contracts`
@@ -136,7 +143,7 @@ Não deve voltar a ser banco local.
 - Não excluir Condomínio com Visitas ou Contratos.
 - Não excluir Técnico com Visitas.
 - Contratos e Empresa devem permanecer restritos a `admin` e `manager`.
-- Uploads de Visitas usam Vercel Blob e exigem `BLOB_READ_WRITE_TOKEN` no backend.
+- Uploads de Visitas, contrato assinado e PDFs de Relatórios usam Vercel Blob privado e exigem `BLOB_READ_WRITE_TOKEN` no backend.
 - O banco salva apenas metadados de arquivo; não salvar base64, bytes no PostgreSQL ou arquivos no filesystem da Vercel.
 - Frontend publicado deve usar `VITE_API_BASE_URL` apontando para a URL pública do backend.
 - Backend publicado deve ter `DATABASE_URL`, `JWT_SECRET` e `CORS_ORIGINS` configurados na Vercel.
@@ -155,12 +162,12 @@ Frontend:
 
 ## 11. Próxima Sequência Recomendada
 1. Implementar e integrar `CompanySettings`.
-2. Implementar Relatórios vinculados a Visitas.
-3. Implementar Relatórios vinculados a Visitas.
-4. Implementar uploads de Contratos/Relatórios conforme necessidade.
-5. Evoluir Dashboard com gráficos simples e filtros por período.
-6. Avaliar React Query para server-state.
-7. Adicionar auditoria, soft delete e logs estruturados.
+2. Implementar envio real de Relatórios por e-mail/WhatsApp.
+3. Evoluir templates/versionamento de PDF.
+4. Implementar uploads adicionais de Relatórios, se o fluxo funcional exigir anexos.
+6. Evoluir Dashboard com gráficos simples e filtros por período.
+7. Avaliar React Query para server-state.
+8. Adicionar auditoria, soft delete e logs estruturados.
 
 ## 12. Instruções Para Futuras IAs
 - Não documentar funcionalidades como implementadas sem verificar código.

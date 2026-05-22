@@ -1,4 +1,4 @@
-import { PlusCircle } from 'lucide-react';
+import { Download, FileText, PlusCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ActionButtons } from '../components/ActionButtons';
@@ -17,7 +17,17 @@ import { useAppContext } from '../context/AppContext';
 import { formatDateTime, isWithinDateRange } from '../utils/formatters';
 
 export function VisitsPage() {
-  const { visits, condominiums, technicians, deleteVisit, domainLoading, domainErrors, canDeleteVisits } = useAppContext();
+  const {
+    visits,
+    condominiums,
+    technicians,
+    deleteVisit,
+    generateReport,
+    openReport,
+    domainLoading,
+    domainErrors,
+    canDeleteVisits,
+  } = useAppContext();
   const [filters, setFilters] = useState({
     condominiumId: '',
     technicianId: '',
@@ -29,6 +39,7 @@ export function VisitsPage() {
   const [detailsItem, setDetailsItem] = useState(null);
   const [termItem, setTermItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [generatingReportId, setGeneratingReportId] = useState('');
   const navigate = useNavigate();
   const canDelete = canDeleteVisits();
 
@@ -49,6 +60,15 @@ export function VisitsPage() {
 
   function getTechnician(id) {
     return technicians.find((item) => item.id === id);
+  }
+
+  async function handleGenerateReport(visit) {
+    setGeneratingReportId(visit.id);
+    try {
+      await generateReport(visit.id);
+    } finally {
+      setGeneratingReportId('');
+    }
   }
 
   return (
@@ -170,11 +190,27 @@ export function VisitsPage() {
                         {technician?.name ?? 'Técnico não identificado'} • {formatDateTime(visit.visitDate)}
                       </p>
                       <p className="mt-2 text-sm text-slate-600">Responsável no local: {visit.responsible.name}</p>
+                      {visit.report ? (
+                        <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                          <FileText size={14} />
+                          Relatório técnico gerado
+                        </p>
+                      ) : null}
                     </div>
                     <ActionButtons
                       actions={[
                         { label: 'Ver detalhes', onClick: () => setDetailsItem(visit) },
                         { label: 'Visualizar termo', onClick: () => setTermItem(visit) },
+                        visit.report
+                          ? {
+                              label: 'Abrir relatório',
+                              onClick: () => openReport(visit.report.id),
+                              icon: Download,
+                            }
+                          : {
+                              label: generatingReportId === visit.id ? 'Gerando...' : 'Gerar relatório técnico',
+                              onClick: () => handleGenerateReport(visit),
+                            },
                         { label: 'Editar', onClick: () => navigate(`/app/visits/${visit.id}`) },
                         ...(canDelete ? [{ label: 'Excluir', onClick: () => setDeleteTarget(visit), tone: 'danger' }] : []),
                       ]}

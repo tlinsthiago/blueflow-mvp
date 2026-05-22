@@ -1,6 +1,6 @@
 # Documentação do Projeto
 
-Esta pasta centraliza a documentação funcional, técnica e de planejamento do `BlueFlow Gestão Hidráulica`.
+Esta pasta centraliza a documentação funcional, técnica e de planejamento do `F TEC AUTOMAÇÃO - Gestão Hidráulica`.
 
 ## Estado Atual
 O projeto está em V1 fullstack parcial:
@@ -10,7 +10,8 @@ O projeto está em V1 fullstack parcial:
 - PostgreSQL Neon;
 - JWT auth;
 - RBAC;
-- CRUD real de Condomínios, Técnicos e Visitas.
+- CRUD real de Condomínios, Técnicos, Visitas e Contratos;
+- Vercel Blob privado para anexos de Visitas, contrato assinado e PDFs de Relatórios.
 - backend preparado para deploy separado na Vercel.
 
 O histórico do MVP frontend-only permanece documentado, mas não representa mais a arquitetura alvo.

@@ -300,7 +300,7 @@ Aceita como decisão histórica, revisada na V1
 Não implementar upload na base inicial. Preparar o modelo `File` para metadados e usar futuramente Vercel Blob ou storage externo equivalente.
 
 ### Revisão atual
-Uploads de arquivos de Visitas foram implementados com Vercel Blob. Uploads de Contratos, Relatórios e demais anexos continuam planejados.
+Uploads de arquivos de Visitas, contrato assinado e PDFs de Relatórios técnicos foram implementados com Vercel Blob privado. Uploads adicionais de Relatórios e demais anexos continuam planejados por módulo.
 
 ### Consequências
 **Positivas**
@@ -308,7 +308,8 @@ Uploads de arquivos de Visitas foram implementados com Vercel Blob. Uploads de C
 - mantém caminho claro para fotos, contratos assinados e anexos.
 
 **Negativas**
-- módulos de Contratos e Relatórios que dependem de arquivo ainda não estão prontos para produção.
+- Anexos adicionais de Relatórios ainda não estão prontos para produção.
+- ainda faltam política de retenção, antivírus/verificação de arquivos e auditoria documental.
 
 ---
 
@@ -560,9 +561,8 @@ O backend precisa da variável:
 - prepara assinatura/upload documental sem acoplar bytes ao banco.
 
 **Negativas**
-- URLs públicas do Blob devem ser avaliadas futuramente caso haja requisito de privacidade;
 - ainda falta política de retenção, auditoria e antivírus;
-- uploads de Contratos e Relatórios continuam fora desta etapa.
+- uploads de Relatórios continuam fora desta etapa.
 
 ---
 
@@ -620,8 +620,8 @@ Migrar o módulo de Contratos para persistência real em PostgreSQL/Neon, com en
 - Contratos permanecem restritos a `admin` e `manager`.
 - `collaborator` não acessa o módulo no frontend nem no backend.
 - Todo contrato deve estar vinculado a um Condomínio existente.
-- `signedFileId` permanece preservado para upload de contrato assinado em etapa futura.
-- Upload/download de contrato assinado não faz parte desta etapa.
+- `signedFileId` foi preservado para o vínculo com arquivo assinado, implementado posteriormente em DEC-027.
+- Upload/download de contrato assinado não fez parte desta etapa específica.
 
 ### Consequências
 **Positivas**
@@ -662,6 +662,42 @@ Endpoints:
 
 **Negativas**
 - ainda falta política de retenção, antivírus e versionamento formal de documentos.
+
+---
+
+## DEC-028: Relatório técnico em PDF a partir de Visitas
+### Status
+Aceita
+
+### Decisão
+Implementar geração real de Relatório Técnico em PDF a partir dos dados persistidos de Visitas.
+
+Endpoints:
+- `GET /reports`;
+- `GET /reports/:id`;
+- `POST /visits/:id/generate-report`;
+- `GET /reports/:id/download`.
+
+### Regras
+- O relatório pertence a uma Visita.
+- O PDF é gerado no backend com `pdfkit`.
+- O arquivo PDF fica no Vercel Blob privado.
+- O PostgreSQL salva metadados em `Report` e `File`.
+- `File.fileType` usa `technical_report_pdf`.
+- Download passa por endpoint autenticado, sem expor URL direta do Blob.
+- Dados institucionais da F TEC AUTOMAÇÃO ficam temporariamente centralizados em configuração de backend, sem implementar `CompanySettings` real nesta etapa.
+
+### Consequências
+**Positivas**
+- transforma a visita operacional em documento entregável ao condomínio;
+- cria evidência técnica profissional;
+- prepara envio futuro por WhatsApp/e-mail;
+- mantém o padrão de Blob privado e metadados no banco.
+
+**Negativas**
+- ainda não há envio real de e-mail/WhatsApp;
+- ainda não há template versionado avançado;
+- fotos WebP/HEIC/PDF anexado são listadas, mas apenas imagens JPEG/PNG são incorporadas visualmente no PDF nesta primeira versão.
 
 ---
 
