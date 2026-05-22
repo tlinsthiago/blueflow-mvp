@@ -16,7 +16,7 @@ Entidades modeladas:
 - `File`
 
 Persistência real já usada pela aplicação:
-- usuários;
+- usuários, incluindo gestão administrativa por `admin`;
 - condomínios;
 - técnicos;
 - visitas e checklist operacional;
@@ -47,7 +47,16 @@ Empresa ainda não possui fluxo completo integrado.
 Uso atual:
 - autenticação;
 - autorização por perfil;
-- seed inicial.
+- seed inicial;
+- CRUD administrativo de usuários;
+- ativação/inativação;
+- reset de senha temporária.
+
+Regras:
+- `email` é único;
+- `passwordHash` nunca deve ser retornado pela API;
+- senhas usam Argon2;
+- administrador não pode inativar o próprio usuário.
 
 ### CompanySettings
 - `id`
@@ -262,6 +271,8 @@ Implementadas no backend:
 - não criar ou editar Visita com Condomínio inexistente;
 - não criar ou editar Visita com Técnico inexistente.
 - não criar ou editar Contrato com Condomínio inexistente.
+- não permitir e-mail duplicado em Usuários;
+- não permitir que administrador inative o próprio usuário.
 
 ## Enums
 ### VisitStatus

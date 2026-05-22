@@ -12,6 +12,7 @@ O produto nasceu como um MVP frontend-only, com dados em `localStorage`, para va
 - Bootstrap de sessão com token JWT.
 - Controle de acesso por perfil.
 - Layout autenticado com menu filtrado por permissão.
+- Gestão administrativa de usuários para perfil `admin`.
 - Dashboard operacional com indicadores reais do backend.
 - Gestão de Condomínios integrada ao backend.
 - Gestão de Técnicos integrada ao backend.
@@ -45,6 +46,8 @@ Os perfis internos atuais são:
 
 ### admin
 - Acesso total.
+- Pode acessar a tela Usuários.
+- Pode criar, editar, ativar/inativar usuários e resetar senha temporária.
 - Pode visualizar, criar, editar e excluir Condomínios e Técnicos.
 - Pode acessar Contratos e Empresa no frontend.
 
@@ -52,12 +55,14 @@ Os perfis internos atuais são:
 - Acesso total operacional.
 - Pode visualizar, criar, editar e excluir Condomínios e Técnicos.
 - Pode acessar Contratos e Empresa no frontend.
+- Não acessa a gestão de usuários.
 
 ### collaborator
 - Pode visualizar módulos operacionais permitidos.
 - Pode visualizar listas de Condomínios e Técnicos.
 - Não pode criar, editar ou excluir Condomínios e Técnicos.
 - Não vê Contratos nem Empresa no menu.
+- Não acessa a gestão de usuários.
 - Não deve acessar endpoints de Contratos nem endpoints futuros de Empresa.
 
 ## Fluxo de Autenticação
@@ -87,6 +92,27 @@ Funcionalidades:
 
 Permissão:
 - disponível para `admin`, `manager` e `collaborator`.
+
+### Usuários
+Implementado com persistência real via API.
+
+Funcionalidades:
+- listagem de usuários;
+- busca por nome ou e-mail;
+- filtro por perfil e status;
+- criação de usuário com senha temporária;
+- edição de nome, e-mail, perfil e status;
+- ativação/inativação controlada;
+- reset de senha temporária.
+
+Permissão:
+- somente `admin`.
+
+Regras:
+- senha é salva no backend apenas como hash Argon2;
+- a interface exibe a senha temporária somente no momento da criação ou reset;
+- administrador não pode inativar o próprio usuário;
+- recuperação de senha por e-mail ainda não foi implementada.
 
 ### Condomínios
 Implementado com persistência real via API.
@@ -190,6 +216,9 @@ Planejado:
 - Arquivos PDF de Relatórios são armazenados no Vercel Blob privado; o banco guarda apenas metadados e vínculo com a Visita.
 - Um Contrato pertence a um Condomínio.
 - Um Contrato pode possuir um contrato assinado vigente, armazenado no Vercel Blob privado com metadados no banco.
+- Usuários possuem e-mail único e senha hasheada com Argon2.
+- Apenas `admin` acessa a gestão de usuários.
+- Administrador não pode inativar o próprio usuário.
 - Não excluir Condomínio com Visitas ou Contratos vinculados.
 - Não excluir Técnico com Visitas vinculadas.
 - `collaborator` não pode criar, editar ou excluir Condomínios e Técnicos.

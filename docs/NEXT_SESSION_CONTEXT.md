@@ -52,6 +52,7 @@ O sistema atende a operação da empresa **F TEC AUTOMAÇÃO**, centralizando:
 - CRUD real de Técnicos.
 - CRUD real de Visitas no backend e frontend.
 - CRUD real de Contratos no backend e frontend.
+- Gestão administrativa de Usuários restrita a `admin`.
 - Termo de instalação e aceite técnico imprimível em Visitas.
 - Upload real de arquivos de Visitas com Vercel Blob.
 - Upload/download privado de contrato assinado com Vercel Blob.
@@ -70,7 +71,8 @@ O sistema atende a operação da empresa **F TEC AUTOMAÇÃO**, centralizando:
 
 ## 5. Perfis
 - `admin`: acesso total.
-- `manager`: acesso total.
+- `admin` é o único perfil com acesso à gestão de usuários.
+- `manager`: acesso total operacional, sem gestão de usuários.
 - `collaborator`: visualiza módulos operacionais permitidos; não cria/edita/exclui Condomínios e Técnicos; não acessa Contratos nem Empresa.
 
 ## 6. Armazenamento no Frontend
@@ -98,6 +100,14 @@ Não deve voltar a ser banco local.
 
 ### Dashboard
 - `GET /dashboard/summary`
+
+### Usuários
+- `GET /users`
+- `GET /users/:id`
+- `POST /users`
+- `PUT /users/:id`
+- `PATCH /users/:id/password`
+- `PATCH /users/:id/status`
 
 ### Condomínios
 - `GET /condominiums`
@@ -142,6 +152,9 @@ Não deve voltar a ser banco local.
 
 ## 9. Regras Importantes
 - `admin` e `manager` podem escrever em Condomínios e Técnicos.
+- somente `admin` pode criar, editar, ativar/inativar e resetar senha de usuários.
+- `passwordHash` nunca deve ser exposto.
+- administrador não pode inativar o próprio usuário.
 - `collaborator` apenas visualiza Condomínios e Técnicos.
 - Não excluir Condomínio com Visitas ou Contratos.
 - Não excluir Técnico com Visitas.
@@ -165,12 +178,13 @@ Frontend:
 
 ## 11. Próxima Sequência Recomendada
 1. Implementar e integrar `CompanySettings`.
-2. Implementar envio automático de Relatórios por e-mail/WhatsApp.
-3. Evoluir templates/versionamento de PDF.
-4. Implementar uploads adicionais de Relatórios, se o fluxo funcional exigir anexos.
+2. Adicionar auditoria para ações administrativas, incluindo alterações de Usuários.
+3. Implementar envio automático de Relatórios por e-mail/WhatsApp.
+4. Evoluir templates/versionamento de PDF.
+5. Implementar uploads adicionais de Relatórios, se o fluxo funcional exigir anexos.
 6. Evoluir Dashboard com gráficos simples e filtros por período.
 7. Avaliar React Query para server-state.
-8. Adicionar auditoria, soft delete e logs estruturados.
+8. Adicionar soft delete e logs estruturados.
 
 ## 12. Instruções Para Futuras IAs
 - Não documentar funcionalidades como implementadas sem verificar código.
@@ -178,6 +192,7 @@ Frontend:
 - Preservar UI em português do Brasil.
 - Manter nomes internos em inglês.
 - Respeitar RBAC em frontend e backend.
+- Não liberar Gestão de Usuários para `manager` ou `collaborator`.
 - Não liberar Contratos ou Empresa para `collaborator`.
 - Preferir evolução incremental por módulo.
 - Preservar componentes visuais existentes.

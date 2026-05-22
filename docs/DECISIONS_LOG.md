@@ -704,6 +704,43 @@ Endpoints:
 
 ---
 
+## DEC-029: Gestão administrativa de Usuários
+### Status
+Aceita
+
+### Decisão
+Implementar CRUD administrativo de Usuários para que a F TEC AUTOMAÇÃO não dependa apenas do seed inicial.
+
+Endpoints:
+- `GET /users`;
+- `GET /users/:id`;
+- `POST /users`;
+- `PUT /users/:id`;
+- `PATCH /users/:id/password`;
+- `PATCH /users/:id/status`.
+
+### Regras
+- Somente `admin` acessa a gestão de usuários no frontend e no backend.
+- `manager` e `collaborator` não acessam o módulo.
+- Senhas usam Argon2.
+- `passwordHash` nunca é retornado pela API.
+- E-mail deve ser único.
+- Administrador não pode inativar o próprio usuário.
+- Reset de senha gera senha temporária definida pelo administrador.
+- Recuperação de senha por e-mail não faz parte desta etapa.
+
+### Consequências
+**Positivas**
+- remove dependência operacional do seed para inclusão de usuários;
+- permite controlar acesso real da equipe pela interface;
+- mantém RBAC centralizado nos perfis atuais.
+
+**Negativas**
+- ainda falta auditoria de alterações administrativas;
+- ainda não há fluxo de convite ou recuperação de senha por e-mail.
+
+---
+
 ## Decisões Futuras Esperadas
 - Estratégia de refresh token ou sessão mais robusta.
 - Adoção ou não de React Query para server-state.

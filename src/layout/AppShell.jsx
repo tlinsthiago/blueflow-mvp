@@ -1,8 +1,8 @@
-import { Bell, Building2, ClipboardList, FileCog, FileText, LayoutDashboard, LogOut, Settings2, Wrench } from 'lucide-react';
+import { Bell, Building2, ClipboardList, FileCog, FileText, LayoutDashboard, LogOut, Settings2, Users, Wrench } from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { ToastStack } from '../components/ToastStack';
-import { canAccessCompany, canAccessContracts } from '../auth/permissions';
+import { canAccessCompany, canAccessContracts, canAccessUsers } from '../auth/permissions';
 
 const navItems = [
   { to: '/app/dashboard', label: 'Painel', icon: LayoutDashboard },
@@ -12,6 +12,7 @@ const navItems = [
   { to: '/app/reports', label: 'Relatórios', icon: FileText },
   { to: '/app/contracts', label: 'Contratos', icon: FileCog, canAccess: canAccessContracts },
   { to: '/app/company', label: 'Empresa', icon: Settings2, canAccess: canAccessCompany },
+  { to: '/app/users', label: 'Usuários', icon: Users, canAccess: canAccessUsers },
 ];
 
 function NavItem({ item, mobile = false }) {
@@ -21,7 +22,7 @@ function NavItem({ item, mobile = false }) {
       to={item.to}
       className={({ isActive }) =>
         mobile
-          ? `flex flex-1 flex-col items-center gap-1 rounded-2xl px-3 py-2 text-xs font-medium ${
+          ? `flex min-w-20 flex-none flex-col items-center gap-1 rounded-2xl px-3 py-2 text-xs font-medium ${
               isActive ? 'bg-brand-600 text-white' : 'text-slate-500'
             }`
           : `flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
@@ -88,7 +89,7 @@ export function AppShell() {
       </div>
 
       <nav className="fixed bottom-3 left-3 right-3 z-20 rounded-[2rem] border border-slate-200 bg-white p-2 shadow-soft lg:hidden">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto">
           {visibleNavItems.map((item) => (
             <NavItem key={item.to} item={item} mobile />
           ))}

@@ -9,6 +9,7 @@ import { contractRoutes } from './routes/contracts.js';
 import { healthRoutes } from './routes/health.js';
 import { reportRoutes } from './routes/reports.js';
 import { technicianRoutes } from './routes/technicians.js';
+import { userRoutes } from './routes/users.js';
 import { visitRoutes } from './routes/visits.js';
 import { prisma } from './lib/prisma.js';
 import { fail } from './lib/http.js';
@@ -148,6 +149,7 @@ export function buildApp(options = {}) {
   app.register(condominiumRoutes, { prefix: '/condominiums' });
   app.register(reportRoutes);
   app.register(technicianRoutes, { prefix: '/technicians' });
+  app.register(userRoutes, { prefix: '/users' });
   app.register(visitRoutes, { prefix: '/visits' });
 
   app.addHook('onClose', async () => {

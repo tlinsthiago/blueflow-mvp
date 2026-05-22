@@ -22,6 +22,8 @@ Todas as rotas de domínio implementadas exigem JWT.
 
 Contratos e Empresa são restritos a `admin` e `manager`.
 
+Gestão de Usuários é restrita a `admin`.
+
 ## Implementado
 ### Health
 - `GET /health`
@@ -31,6 +33,33 @@ Contratos e Empresa são restritos a `admin` e `manager`.
 - `GET /auth/me`
 
 Observação: `refresh token` e `logout` server-side ainda não foram implementados.
+
+### Users
+- `GET /users`
+- `GET /users/:id`
+- `POST /users`
+- `PUT /users/:id`
+- `PATCH /users/:id/password`
+- `PATCH /users/:id/status`
+
+Filtros:
+- `search`
+- `role`
+- `isActive`
+- `page`
+- `pageSize`
+
+Permissões:
+- somente `admin`;
+- `manager` e `collaborator` não acessam a gestão de usuários.
+
+Regras:
+- senhas são armazenadas apenas como hash Argon2;
+- `passwordHash` nunca é retornado pela API;
+- e-mail deve ser único;
+- administrador não pode inativar o próprio usuário;
+- reset de senha recebe uma senha temporária definida pelo administrador;
+- recuperação de senha por e-mail ainda não foi implementada.
 
 ### Dashboard
 - `GET /dashboard/summary`
@@ -298,6 +327,7 @@ Status aceitos para checklist:
 ## Integração Frontend
 O frontend já consome:
 - `authService`;
+- `userService`, restrito ao módulo administrativo de Usuários.
 - `condominiumService`;
 - `technicianService`.
 - `visitService`, incluindo anexos reais de visitas.

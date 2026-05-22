@@ -45,6 +45,7 @@ O MVP original era frontend-only com `localStorage`. Na V1 atual, `localStorage`
 - `src/components`: componentes reutilizáveis.
 - `src/context`: `AppContext` como sessão, permissões, notificações e cache.
 - `src/services`: cliente de API e services de domínio.
+- `src/services/userService.js`: consumo dos endpoints administrativos de Usuários.
 - `src/auth`: regras de permissões do frontend.
 - `src/utils`: helpers de formatação, visitas e contratos.
 - `src/utils/shareHelpers.js`: geração de links `wa.me` e `mailto:` para compartilhamento assistido.
@@ -55,6 +56,7 @@ O MVP original era frontend-only com `localStorage`. Na V1 atual, `localStorage`
 - `backend/src/server.js`: inicialização do servidor.
 - `backend/api/index.js`: entrypoint serverless para deploy do backend na Vercel.
 - `backend/src/routes`: rotas HTTP.
+- `backend/src/routes/users.js`: CRUD administrativo de usuários, restrito a `admin`.
 - `backend/src/lib`: Prisma, respostas HTTP, autorização e helpers.
 - `backend/prisma/schema.prisma`: modelo relacional.
 - `backend/prisma/migrations`: migrations do banco.
@@ -71,6 +73,7 @@ O MVP original era frontend-only com `localStorage`. Na V1 atual, `localStorage`
 - JWT Bearer token.
 - Usuários com senha hasheada por Argon2.
 - Seed inicial com usuários `admin`, `manager` e `collaborator`.
+- Gestão administrativa de usuários por `admin`.
 - Frontend restaura sessão chamando `/auth/me`.
 - Interceptor no frontend trata `401` e limpa sessão.
 
@@ -88,10 +91,13 @@ Perfis internos:
 - `collaborator`
 
 Regras atuais:
-- `admin` e `manager`: acesso total na UI e escrita em Condomínios/Técnicos.
+- `admin`: acesso total, incluindo Gestão de Usuários.
+- `manager`: acesso total operacional, sem Gestão de Usuários.
+- `admin` e `manager`: escrita em Condomínios/Técnicos, Visitas, Contratos e Relatórios conforme módulo.
 - `collaborator`: visualiza Condomínios/Técnicos, sem criar/editar/excluir.
 - `collaborator`: não vê Contratos nem Empresa no menu.
 - Backend valida escrita de Condomínios/Técnicos com role `admin` ou `manager`.
+- Backend restringe `/users` exclusivamente a `admin`.
 
 ## AppContext
 O `AppContext` deixou de ser persistência principal e passou a atuar como fachada frontend:
@@ -113,6 +119,16 @@ Essa abordagem evita quebrar as páginas existentes enquanto a migração comple
 ### Auth
 - `POST /auth/login`
 - `GET /auth/me`
+
+### Usuários
+- `GET /users`
+- `GET /users/:id`
+- `POST /users`
+- `PUT /users/:id`
+- `PATCH /users/:id/password`
+- `PATCH /users/:id/status`
+
+Observação: endpoints de Usuários exigem JWT e role `admin`. A API nunca retorna `passwordHash`; criação e reset de senha usam Argon2 no backend.
 
 ### Dashboard
 - `GET /dashboard/summary`
@@ -235,7 +251,7 @@ Entidades já modeladas no Prisma:
 - `File`
 
 Persistência operacional real implementada até agora:
-- usuários;
+- usuários e gestão administrativa de usuários;
 - condomínios;
 - técnicos;
 - visitas;
@@ -325,6 +341,28 @@ Listagens usam `meta` para paginação quando aplicável.
 ## Validação
 O backend usa Zod para validar payloads e parâmetros em rotas novas.
 
+## Gestão de Usuários
+Implementada com:
+- `backend/src/routes/users.js`;
+- `src/services/userService.js`;
+- `src/pages/UsersPage.jsx`;
+- rota protegida `/app/users`;
+- item de menu visível apenas para `admin`.
+
+Escopo atual:
+- listar, buscar e filtrar usuários;
+- criar usuário com senha temporária;
+- editar nome, e-mail, perfil e status;
+- ativar/inativar usuários;
+- resetar senha temporária;
+- impedir inativação do próprio usuário;
+- validar e-mail único.
+
+Fora do escopo atual:
+- recuperação de senha por e-mail;
+- convite automático;
+- auditoria de alterações de perfil/senha.
+
 ## Convenções
 - Código interno em inglês.
 - UI e documentação em português do Brasil.
@@ -334,6 +372,7 @@ O backend usa Zod para validar payloads e parâmetros em rotas novas.
 
 ## Riscos Técnicos Atuais
 - Empresa ainda não persiste via API.
+- Gestão de Usuários ainda não possui auditoria nem recuperação de senha por e-mail.
 - Envio automático de Relatórios por WhatsApp/e-mail ainda não foi implementado.
 - Uploads adicionais de Relatórios ainda não foram integrados.
 - Assinatura eletrônica ainda não foi implementada.
@@ -347,11 +386,11 @@ O backend usa Zod para validar payloads e parâmetros em rotas novas.
 
 ## Próximas Etapas Técnicas
 1. Integrar Empresa ao backend com RBAC.
-2. Implementar envio automático de Relatórios por e-mail/WhatsApp.
-3. Evoluir templates/versionamento de PDFs.
-4. Implementar exclusão/gestão avançada de Relatórios, se necessário.
+2. Implementar auditoria para ações administrativas, incluindo Usuários.
+3. Implementar envio automático de Relatórios por e-mail/WhatsApp.
+4. Evoluir templates/versionamento de PDFs.
 5. Evoluir aceite técnico para assinatura eletrônica.
 6. Evoluir Dashboard com gráficos e filtros por período.
 7. Avaliar React Query para server-state.
-8. Adicionar auditoria, logs estruturados e soft delete.
+8. Adicionar logs estruturados e soft delete.
 9. Preparar multitenancy para SaaS.

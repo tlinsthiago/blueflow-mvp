@@ -11,7 +11,8 @@ import { VisitFormPage } from './pages/VisitFormPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { ContractsPage } from './pages/ContractsPage';
 import { CompanySettingsPage } from './pages/CompanySettingsPage';
-import { fullAccessRoles, hasAnyRole } from './auth/permissions';
+import { UsersPage } from './pages/UsersPage';
+import { adminRoles, fullAccessRoles, hasAnyRole } from './auth/permissions';
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { authLoading, currentUser, isAuthenticated } = useAppContext();
@@ -69,6 +70,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={fullAccessRoles}>
               <CompanySettingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="users"
+          element={
+            <ProtectedRoute allowedRoles={adminRoles}>
+              <UsersPage />
             </ProtectedRoute>
           }
         />

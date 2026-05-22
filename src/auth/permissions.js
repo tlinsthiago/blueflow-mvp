@@ -5,6 +5,7 @@ export const roles = {
 };
 
 export const fullAccessRoles = [roles.admin, roles.manager];
+export const adminRoles = [roles.admin];
 
 export function hasAnyRole(user, allowedRoles) {
   if (!allowedRoles || allowedRoles.length === 0) {
@@ -20,4 +21,8 @@ export function canAccessContracts(user) {
 
 export function canAccessCompany(user) {
   return hasAnyRole(user, fullAccessRoles);
+}
+
+export function canAccessUsers(user) {
+  return hasAnyRole(user, adminRoles);
 }
