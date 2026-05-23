@@ -22,11 +22,11 @@ O produto nasceu como um MVP frontend-only, com dados em `localStorage`, para va
 - Contratos persistem no backend e usam Vercel Blob privado para contrato assinado.
 - Relatórios técnicos são gerados a partir de Visitas e armazenados como PDF privado.
 - Compartilhamento assistido de Relatórios e Contratos por WhatsApp/e-mail com mensagens prontas.
+- Gestão de dados institucionais da Empresa integrada ao backend.
 - Páginas existentes para Painel, Relatórios, Contratos e Empresa.
 - Componentes reutilizáveis para filtros, cards, modais, ações, uploads privados e prévias.
 
 ### Parcial ou Ainda Não Integrado ao Backend
-- Empresa/Configuração da empresa ainda não persiste no banco.
 - Envio automático via WhatsApp Business API, SMTP ou serviço transacional ainda não foi implementado.
 
 ## Contexto de Negócio
@@ -203,11 +203,17 @@ Ainda planejado:
 - versionamento formal do contrato assinado.
 
 ### Empresa
-Tela existe no frontend, mas a persistência real no backend ainda não foi integrada.
+Implementado com persistência real para uma configuração institucional global.
 
-Planejado:
-- leitura e atualização via API;
-- restrição a `admin` e `manager`.
+Funcionalidades:
+- leitura dos dados da empresa;
+- atualização dos dados institucionais;
+- fallback para dados padrão da F TEC AUTOMAÇÃO quando ainda não houver cadastro salvo;
+- uso dos dados em contratos, relatórios técnicos em PDF e mensagens de WhatsApp/e-mail.
+
+Permissão:
+- disponível para `admin` e `manager`;
+- `collaborator` não acessa.
 
 ## Regras de Negócio
 - Um Condomínio pode possuir muitos Contratos.
@@ -220,6 +226,8 @@ Planejado:
 - Arquivos PDF de Relatórios são armazenados no Vercel Blob privado; o banco guarda apenas metadados e vínculo com a Visita.
 - Um Contrato pertence a um Condomínio.
 - Um Contrato pode possuir um contrato assinado vigente, armazenado no Vercel Blob privado com metadados no banco.
+- Existe uma única configuração institucional global da empresa.
+- Dados da empresa alimentam contratos, relatórios técnicos e mensagens assistidas.
 - Usuários possuem e-mail único e senha hasheada com Argon2.
 - Apenas `admin` acessa a gestão de usuários.
 - Administrador não pode inativar o próprio usuário.

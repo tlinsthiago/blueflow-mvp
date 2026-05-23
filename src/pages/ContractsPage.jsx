@@ -257,7 +257,7 @@ export function ContractsPage() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => openShareLink(buildContractShareContent({ contract, condominium }).whatsappUrl)}
+                            onClick={() => openShareLink(buildContractShareContent({ contract, condominium, companySettings }).whatsappUrl)}
                             className="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
                           >
                             <MessageCircle size={16} />
@@ -265,7 +265,7 @@ export function ContractsPage() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => openShareLink(buildContractShareContent({ contract, condominium }).emailUrl)}
+                            onClick={() => openShareLink(buildContractShareContent({ contract, condominium, companySettings }).emailUrl)}
                             className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                           >
                             <Mail size={16} />

@@ -207,8 +207,11 @@ export async function reportRoutes(app) {
     }
 
     const generatedAt = new Date();
+    const companySettings = await app.prisma.companySettings.findFirst({
+      orderBy: { createdAt: 'asc' },
+    });
     const imageAttachments = await loadImageAttachments(visit, request);
-    const pdfBuffer = await generateTechnicalReportPdf({ visit, imageAttachments, generatedAt });
+    const pdfBuffer = await generateTechnicalReportPdf({ visit, imageAttachments, generatedAt, companySettings });
     const fileName = reportFileName(visit);
     const storagePath = `reports/${visit.id}/${Date.now()}-${fileName}`;
     let blob = null;

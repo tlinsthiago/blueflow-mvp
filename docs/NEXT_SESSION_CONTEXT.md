@@ -53,6 +53,7 @@ O sistema atende a operação da empresa **F TEC AUTOMAÇÃO**, centralizando:
 - CRUD real de Visitas no backend e frontend.
 - CRUD real de Contratos no backend e frontend.
 - Gestão administrativa de Usuários restrita a `admin`.
+- Empresa/Configuração institucional integrada ao backend real.
 - Termo de instalação e aceite técnico imprimível em Visitas.
 - Upload real de arquivos de Visitas com Vercel Blob.
 - Upload/download privado de contrato assinado com Vercel Blob.
@@ -65,7 +66,6 @@ O sistema atende a operação da empresa **F TEC AUTOMAÇÃO**, centralizando:
 - Seed de usuários iniciais.
 
 ### Ainda Não Integrado
-- Empresa.
 - Envio automático de e-mail/WhatsApp.
 - Portal do cliente.
 
@@ -100,6 +100,10 @@ Não deve voltar a ser banco local.
 
 ### Dashboard
 - `GET /dashboard/summary`
+
+### Empresa
+- `GET /company`
+- `PUT /company`
 
 ### Usuários
 - `GET /users`
@@ -152,6 +156,7 @@ Não deve voltar a ser banco local.
 
 ## 9. Regras Importantes
 - `admin` e `manager` podem escrever em Condomínios e Técnicos.
+- `admin` e `manager` podem visualizar e editar Empresa.
 - somente `admin` pode criar, editar, ativar/inativar e resetar senha de usuários.
 - `passwordHash` nunca deve ser exposto.
 - administrador não pode inativar o próprio usuário.
@@ -159,6 +164,7 @@ Não deve voltar a ser banco local.
 - Não excluir Condomínio com Visitas ou Contratos.
 - Não excluir Técnico com Visitas.
 - Contratos e Empresa devem permanecer restritos a `admin` e `manager`.
+- Empresa é uma configuração institucional global única, sem multiempresa nesta etapa.
 - Uploads de Visitas, contrato assinado e PDFs de Relatórios usam Vercel Blob privado e exigem `BLOB_READ_WRITE_TOKEN` no backend.
 - O banco salva apenas metadados de arquivo; não salvar base64, bytes no PostgreSQL ou arquivos no filesystem da Vercel.
 - Frontend publicado deve usar `VITE_API_BASE_URL` apontando para a URL pública do backend.
@@ -177,14 +183,13 @@ Frontend:
 - redeploy após alterar variáveis de ambiente.
 
 ## 11. Próxima Sequência Recomendada
-1. Implementar e integrar `CompanySettings`.
-2. Adicionar auditoria para ações administrativas, incluindo alterações de Usuários.
-3. Implementar envio automático de Relatórios por e-mail/WhatsApp.
-4. Evoluir templates/versionamento de PDF.
-5. Implementar uploads adicionais de Relatórios, se o fluxo funcional exigir anexos.
-6. Evoluir Dashboard com gráficos simples e filtros por período.
-7. Avaliar React Query para server-state.
-8. Adicionar soft delete e logs estruturados.
+1. Adicionar auditoria para ações administrativas, incluindo alterações de Usuários e Empresa.
+2. Implementar envio automático de Relatórios por e-mail/WhatsApp.
+3. Evoluir templates/versionamento de PDF.
+4. Implementar uploads adicionais de Relatórios, se o fluxo funcional exigir anexos.
+5. Evoluir Dashboard com gráficos simples e filtros por período.
+6. Avaliar React Query para server-state.
+7. Adicionar soft delete e logs estruturados.
 
 ## 12. Instruções Para Futuras IAs
 - Não documentar funcionalidades como implementadas sem verificar código.

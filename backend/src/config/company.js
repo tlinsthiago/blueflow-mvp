@@ -1,9 +1,28 @@
-export const companyProfile = {
-  tradeName: 'F TEC AUTOMAÇÃO',
-  subtitle: 'Automação e manutenção hidráulica para condomínios',
+export const defaultCompanySettings = {
   legalName: 'F TEC AUTOMAÇÃO',
-  document: '',
+  cnpj: '',
+  addressLine: '',
+  city: '',
+  state: '',
+  legalRepresentative: '',
+  representativeCpf: '',
   phone: '',
   email: '',
-  address: '',
+};
+
+export function buildCompanyProfile(settings = null) {
+  const company = {
+    ...defaultCompanySettings,
+    ...(settings ?? {}),
+  };
+
+  return {
+    ...company,
+    tradeName: company.legalName || defaultCompanySettings.legalName,
+    subtitle: 'Automação e manutenção hidráulica para condomínios',
+    document: company.cnpj || '',
+    address: [company.addressLine, company.city && company.state ? `${company.city}/${company.state}` : company.city || company.state]
+      .filter(Boolean)
+      .join(' - '),
+  };
 };

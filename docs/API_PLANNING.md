@@ -79,6 +79,20 @@ Retorna:
 Permissão:
 - `admin`, `manager` e `collaborator`.
 
+### Company
+- `GET /company`
+- `PUT /company`
+
+Permissões:
+- `admin` e `manager` podem visualizar e editar;
+- `collaborator` não acessa.
+
+Regras:
+- existe apenas uma configuração institucional principal;
+- quando não há registro salvo, o sistema retorna os dados padrão da F TEC AUTOMAÇÃO;
+- `PUT /company` cria o registro quando ele ainda não existe ou atualiza o registro principal existente;
+- os dados são usados em contratos, relatórios técnicos em PDF e mensagens assistidas de WhatsApp/e-mail.
+
 ### Condominiums
 - `GET /condominiums`
 - `GET /condominiums/:id`
@@ -214,13 +228,6 @@ Regras:
 - o banco salva apenas metadados em `File`, com `fileType`/`category` `signed_contract`.
 
 ## Planejado
-### Company
-- `GET /company`
-- `PUT /company`
-
-Permissão planejada:
-- somente `admin` e `manager`.
-
 ### Reports - próximas extensões
 - envio por e-mail/WhatsApp;
 - templates/versionamento avançado.

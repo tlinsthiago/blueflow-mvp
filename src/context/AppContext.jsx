@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { technicianStatuses } from '../data/mockData';
-import { normalizeCondominium, normalizeContract } from '../utils/contractHelpers';
+import { normalizeCompanySettings, normalizeCondominium, normalizeContract } from '../utils/contractHelpers';
 import { normalizeVisit } from '../utils/visitHelpers';
 import { getStoredToken, getStoredUser, onUnauthorized } from '../services/apiClient';
 import * as authService from '../services/authService';
@@ -8,6 +8,7 @@ import { condominiumService } from '../services/condominiumService';
 import { technicianService } from '../services/technicianService';
 import { visitService } from '../services/visitService';
 import { contractService } from '../services/contractService';
+import { companyService } from '../services/companyService';
 import { reportService } from '../services/reportService';
 import { fullAccessRoles, hasAnyRole } from '../auth/permissions';
 import { formatCurrencyInput, parseCurrencyValue, parseDateInputToIso } from '../utils/formatters';
@@ -16,7 +17,7 @@ const AppContext = createContext(null);
 const LEGACY_STORAGE_KEY = 'blueflow-condo-care';
 
 const emptyCompanySettings = {
-  legalName: '',
+  legalName: 'F TEC AUTOMAÇÃO',
   cnpj: '',
   addressLine: '',
   city: '',
@@ -42,6 +43,7 @@ const initialDomainLoading = {
   visits: false,
   contracts: false,
   reports: false,
+  companySettings: false,
 };
 
 const initialDomainErrors = {
@@ -50,6 +52,7 @@ const initialDomainErrors = {
   visits: '',
   contracts: '',
   reports: '',
+  companySettings: '',
 };
 
 const visitStatusToApi = {
@@ -391,6 +394,29 @@ export function AppProvider({ children }) {
     }
   }
 
+  async function loadCompanySettings() {
+    if (!hasAnyRole(currentUser, fullAccessRoles)) {
+      setDataState((current) => ({ ...current, companySettings: emptyCompanySettings }));
+      return emptyCompanySettings;
+    }
+
+    setDomainLoading((current) => ({ ...current, companySettings: true }));
+    setDomainErrors((current) => ({ ...current, companySettings: '' }));
+
+    try {
+      const payload = await companyService.get();
+      const companySettings = normalizeCompanySettings(payload.data);
+      setDataState((current) => ({ ...current, companySettings }));
+      return companySettings;
+    } catch (error) {
+      setDomainErrors((current) => ({ ...current, companySettings: error.message }));
+      notify('error', error.message);
+      return emptyCompanySettings;
+    } finally {
+      setDomainLoading((current) => ({ ...current, companySettings: false }));
+    }
+  }
+
   async function loadReports() {
     setDomainLoading((current) => ({ ...current, reports: true }));
     setDomainErrors((current) => ({ ...current, reports: '' }));
@@ -420,6 +446,7 @@ export function AppProvider({ children }) {
     loadReports();
     if (hasAnyRole(currentUser, fullAccessRoles)) {
       loadContracts();
+      loadCompanySettings();
     }
   }, [authLoading, currentUser, isAuthenticated]);
 
@@ -487,6 +514,7 @@ export function AppProvider({ children }) {
       loadVisits,
       loadContracts,
       loadReports,
+      loadCompanySettings,
       async login(credentials) {
         const session = await authService.login(credentials);
         setToken(session.token);
@@ -500,15 +528,26 @@ export function AppProvider({ children }) {
       dismissNotification(id) {
         setNotifications((current) => current.filter((item) => item.id !== id));
       },
-      updateCompanySettings(payload) {
-        setDataState((current) => ({
-          ...current,
-          companySettings: {
-            ...emptyCompanySettings,
-            ...payload,
-          },
-        }));
-        notify('success', 'Dados da empresa atualizados com sucesso.');
+      async updateCompanySettings(payload) {
+        setDomainLoading((current) => ({ ...current, companySettings: true }));
+        setDomainErrors((current) => ({ ...current, companySettings: '' }));
+
+        try {
+          const response = await companyService.update(payload);
+          const companySettings = normalizeCompanySettings(response.data);
+          setDataState((current) => ({
+            ...current,
+            companySettings,
+          }));
+          notify('success', 'Dados da empresa atualizados com sucesso.');
+          return companySettings;
+        } catch (error) {
+          setDomainErrors((current) => ({ ...current, companySettings: error.message }));
+          notify('error', error.message);
+          throw error;
+        } finally {
+          setDomainLoading((current) => ({ ...current, companySettings: false }));
+        }
       },
       async createCondominium(payload) {
         try {

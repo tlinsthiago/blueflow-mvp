@@ -1,5 +1,5 @@
 import PDFDocument from 'pdfkit';
-import { companyProfile } from '../config/company.js';
+import { buildCompanyProfile } from '../config/company.js';
 
 const page = {
   marginX: 28,
@@ -143,7 +143,7 @@ function textHeight(doc, text, options = {}) {
   return height;
 }
 
-function writeHeader(doc, generatedAt) {
+function writeHeader(doc, generatedAt, companyProfile) {
   const width = contentWidth(doc);
   const x = page.marginX;
   const y = page.marginTop;
@@ -496,7 +496,7 @@ async function collectPdfBuffer(doc) {
   });
 }
 
-function writeFooters(doc) {
+function writeFooters(doc, companyProfile) {
   const pageCount = doc.bufferedPageRange().count;
   for (let index = 0; index < pageCount; index += 1) {
     doc.switchToPage(index);
@@ -516,7 +516,8 @@ function writeFooters(doc) {
   }
 }
 
-export async function generateTechnicalReportPdf({ visit, imageAttachments = [], generatedAt = new Date() }) {
+export async function generateTechnicalReportPdf({ visit, imageAttachments = [], generatedAt = new Date(), companySettings = null }) {
+  const companyProfile = buildCompanyProfile(companySettings);
   const doc = new PDFDocument({
     size: 'A4',
     margins: {
@@ -533,14 +534,14 @@ export async function generateTechnicalReportPdf({ visit, imageAttachments = [],
     },
   });
 
-  writeHeader(doc, generatedAt);
+  writeHeader(doc, generatedAt, companyProfile);
   writeIdentification(doc, visit);
   writeChecklist(doc, visit);
   writeTechnicalSummary(doc, visit);
   writeAcceptance(doc, visit, generatedAt);
   writeAttachments(doc, visit);
   writePhotoGrid(doc, imageAttachments);
-  writeFooters(doc);
+  writeFooters(doc, companyProfile);
 
   return collectPdfBuffer(doc);
 }

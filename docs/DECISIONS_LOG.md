@@ -386,8 +386,8 @@ Endpoints integrados:
 - mantém UI existente com cache em memória.
 
 **Negativas**
-- Relatórios e Empresa ainda precisam ser migrados;
-- `AppContext` ainda contém compatibilidade temporária.
+- a migração completa exigiu etapas posteriores para Visitas, Relatórios, Contratos e Empresa;
+- `AppContext` ainda contém cache e compatibilidade temporária de alguns fluxos.
 
 ---
 
@@ -738,6 +738,39 @@ Endpoints:
 **Negativas**
 - ainda falta auditoria de alterações administrativas;
 - ainda não há fluxo de convite ou recuperação de senha por e-mail.
+
+---
+
+## DEC-030: Configuração institucional global da Empresa
+### Status
+Aceita
+
+### Decisão
+Integrar a tela Empresa ao backend real usando a entidade `CompanySettings` já existente no modelo de dados.
+
+Endpoints:
+- `GET /company`;
+- `PUT /company`.
+
+### Regras
+- Existe apenas uma configuração institucional principal.
+- `admin` e `manager` podem visualizar e editar.
+- `collaborator` não acessa Empresa.
+- Quando ainda não há registro salvo, o sistema retorna fallback seguro da F TEC AUTOMAÇÃO.
+- `PUT /company` cria o registro inicial ou atualiza o registro principal existente.
+- Relatórios técnicos em PDF usam `CompanySettings` quando disponível.
+- Contratos e mensagens assistidas de WhatsApp/e-mail usam os dados institucionais carregados no frontend.
+- Não há multiempresa nesta etapa.
+
+### Consequências
+**Positivas**
+- remove hardcode institucional dos relatórios como fonte principal;
+- mantém os documentos alinhados aos dados cadastrados na operação;
+- completa a migração funcional da tela Empresa para persistência real.
+
+**Negativas**
+- ainda não há auditoria de alterações de dados institucionais;
+- ainda não há suporte a múltiplas empresas ou unidades.
 
 ---
 

@@ -22,6 +22,7 @@ export function ReportsPage() {
     visits,
     condominiums,
     technicians,
+    companySettings,
     domainLoading,
     domainErrors,
     loadReports,
@@ -259,7 +260,7 @@ export function ReportsPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => openShareLink(buildReportShareContent(row).whatsappUrl)}
+                      onClick={() => openShareLink(buildReportShareContent({ ...row, companySettings }).whatsappUrl)}
                       className="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
                     >
                       <MessageCircle size={16} />
@@ -267,7 +268,7 @@ export function ReportsPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => openShareLink(buildReportShareContent(row).emailUrl)}
+                      onClick={() => openShareLink(buildReportShareContent({ ...row, companySettings }).emailUrl)}
                       className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                     >
                       <Mail size={16} />

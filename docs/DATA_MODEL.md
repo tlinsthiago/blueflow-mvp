@@ -24,8 +24,7 @@ Persistência real já usada pela aplicação:
 - contratos;
 - contrato assinado com metadados no PostgreSQL e conteúdo no Vercel Blob privado.
 - relatórios técnicos vinculados a visitas, com PDF no Vercel Blob privado e metadados no banco.
-
-Empresa ainda não possui fluxo completo integrado.
+- configuração institucional da empresa.
 
 ## Perfis
 ### UserRole
@@ -74,7 +73,9 @@ Regras:
 
 Status:
 - modelado;
-- endpoint e integração frontend ainda pendentes.
+- leitura e atualização integradas ao backend e frontend;
+- usado em contratos, relatórios técnicos em PDF e mensagens assistidas;
+- mantém apenas um registro institucional principal, com fallback para F TEC AUTOMAÇÃO quando não houver cadastro salvo.
 
 ### Condominium
 - `id`
@@ -273,6 +274,7 @@ Implementadas no backend:
 - não criar ou editar Contrato com Condomínio inexistente.
 - não permitir e-mail duplicado em Usuários;
 - não permitir que administrador inative o próprio usuário.
+- manter apenas uma configuração institucional principal em `CompanySettings`.
 
 ## Enums
 ### VisitStatus

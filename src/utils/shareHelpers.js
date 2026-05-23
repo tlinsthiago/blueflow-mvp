@@ -1,6 +1,10 @@
 import { formatDate } from './formatters';
 
-const signature = 'F TEC AUTOMAÇÃO\nAutomação e manutenção hidráulica para condomínios';
+const defaultCompanySettings = {
+  legalName: 'F TEC AUTOMAÇÃO',
+  phone: '',
+  email: '',
+};
 
 function encoded(value) {
   return encodeURIComponent(value);
@@ -41,26 +45,36 @@ export function emailShareUrl({ to = '', subject, body }) {
   return `mailto:${recipient}?subject=${encoded(subject)}&body=${encoded(body)}`;
 }
 
-export function buildReportShareContent({ report, visit, condominium, technician }) {
+function companyDisplayName(companySettings) {
+  return companySettings?.legalName?.trim() || defaultCompanySettings.legalName;
+}
+
+function companySignature(companySettings) {
+  const companyName = companyDisplayName(companySettings);
+  return `${companyName}\nAutomação e manutenção hidráulica para condomínios`;
+}
+
+export function buildReportShareContent({ report, visit, condominium, technician, companySettings }) {
   const condominiumName = condominium?.name ?? 'condomínio informado';
   const visitDate = formatDate(visit?.visitDate);
   const serviceType = visit?.serviceType ?? 'serviço técnico';
   const version = report?.version ? ` - versão ${report.version}` : '';
   const recipientEmail = condominium?.managerEmail ?? '';
   const recipientPhone = condominium?.managerPhone ?? '';
+  const companyName = companyDisplayName(companySettings);
 
   const subject = `Relatório técnico - ${condominiumName}`;
   const body = [
-    `Olá, segue o relatório técnico${version} da F TEC AUTOMAÇÃO em anexo.`,
+    `Olá, segue o relatório técnico${version} da ${companyName} em anexo.`,
     '',
     `Condomínio: ${condominiumName}`,
     `Data da visita: ${visitDate}`,
     `Tipo de serviço: ${serviceType}`,
     technician?.name ? `Técnico responsável: ${technician.name}` : '',
     '',
-    'Arquivo baixado pelo sistema F TEC AUTOMAÇÃO.',
+    `Arquivo baixado pelo sistema ${companyName}.`,
     '',
-    signature,
+    companySignature(companySettings),
   ]
     .filter(Boolean)
     .join('\n');
@@ -73,24 +87,25 @@ export function buildReportShareContent({ report, visit, condominium, technician
   };
 }
 
-export function buildContractShareContent({ contract, condominium }) {
+export function buildContractShareContent({ contract, condominium, companySettings }) {
   const condominiumName = condominium?.name ?? 'condomínio informado';
   const status = contract?.status ?? 'status não informado';
   const contractNumber = contract?.contractNumber ?? 'contrato';
   const recipientEmail = condominium?.managerEmail ?? '';
   const recipientPhone = condominium?.managerPhone ?? '';
+  const companyName = companyDisplayName(companySettings);
 
   const subject = `Contrato ${contractNumber} - ${condominiumName}`;
   const body = [
-    'Olá, segue o contrato da F TEC AUTOMAÇÃO em anexo.',
+    `Olá, segue o contrato da ${companyName} em anexo.`,
     '',
     `Condomínio: ${condominiumName}`,
     `Número do contrato: ${contractNumber}`,
     `Status: ${status}`,
     '',
-    'Arquivo baixado pelo sistema F TEC AUTOMAÇÃO.',
+    `Arquivo baixado pelo sistema ${companyName}.`,
     '',
-    signature,
+    companySignature(companySettings),
   ]
     .filter(Boolean)
     .join('\n');

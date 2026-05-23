@@ -321,10 +321,19 @@ Disponível apenas para `admin` e `manager`.
 ### Empresa
 Tela destinada aos dados institucionais da empresa.
 
-Status atual:
-- a tela existe;
-- deve ser tratada como área em evolução;
-- ainda não deve ser usada como cadastro oficial definitivo da empresa.
+Permite manter:
+- nome da empresa;
+- CNPJ;
+- endereço;
+- cidade e estado;
+- representante legal;
+- CPF do representante;
+- telefone;
+- e-mail.
+
+Esses dados são usados em contratos, relatórios técnicos e mensagens prontas de WhatsApp/e-mail.
+
+Se nenhum dado tiver sido salvo ainda, o sistema usa as informações padrão da F TEC AUTOMAÇÃO.
 
 Disponível para `admin` e `manager`.
 
@@ -347,6 +356,8 @@ Disponível apenas para `admin`.
 - Não é possível excluir condomínio com visitas ou contratos vinculados.
 - Não é possível excluir técnico com visitas vinculadas.
 - Contratos sempre pertencem a um condomínio.
+- Existe uma única configuração institucional da empresa.
+- Dados da Empresa aparecem em contratos, relatórios técnicos e mensagens assistidas.
 - Colaboradores não acessam Contratos, Empresa ou Usuários.
 - Colaboradores podem criar e editar visitas, mas não podem excluir.
 - Relatórios técnicos são gerados a partir de visitas.
@@ -418,8 +429,8 @@ Sim, se seu perfil permitir. A reemissão cria uma nova versão do relatório.
 ### Excluir um relatório apaga a visita?
 Não. A exclusão remove apenas o relatório selecionado.
 
-### A tela Empresa já é definitiva?
-Ainda não. A tela existe, mas a gestão completa dos dados da empresa está planejada para uma próxima etapa.
+### A tela Empresa já salva os dados?
+Sim. Usuários `admin` e `manager` podem atualizar os dados institucionais usados em contratos, relatórios técnicos e mensagens assistidas.
 
 ### O sistema assina documentos eletronicamente?
 Ainda não. A assinatura eletrônica é uma funcionalidade futura.
@@ -464,7 +475,6 @@ Documento de aceite técnico e responsabilidade operacional associado à visita.
 ## 11. Funcionalidades futuras
 As funcionalidades abaixo estão planejadas ou em evolução, mas ainda não devem ser consideradas disponíveis como fluxo completo:
 
-- dados definitivos da tela Empresa;
 - envio automático de e-mail;
 - integração automática com WhatsApp;
 - assinatura eletrônica;

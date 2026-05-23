@@ -45,6 +45,7 @@ O MVP original era frontend-only com `localStorage`. Na V1 atual, `localStorage`
 - `src/components`: componentes reutilizáveis.
 - `src/context`: `AppContext` como sessão, permissões, notificações e cache.
 - `src/services`: cliente de API e services de domínio.
+- `src/services/companyService.js`: leitura e atualização da configuração institucional.
 - `src/services/userService.js`: consumo dos endpoints administrativos de Usuários.
 - `src/auth`: regras de permissões do frontend.
 - `src/utils`: helpers de formatação, visitas e contratos.
@@ -56,6 +57,7 @@ O MVP original era frontend-only com `localStorage`. Na V1 atual, `localStorage`
 - `backend/src/server.js`: inicialização do servidor.
 - `backend/api/index.js`: entrypoint serverless para deploy do backend na Vercel.
 - `backend/src/routes`: rotas HTTP.
+- `backend/src/routes/company.js`: configuração institucional global, restrita a `admin` e `manager`.
 - `backend/src/routes/users.js`: CRUD administrativo de usuários, restrito a `admin`.
 - `backend/src/lib`: Prisma, respostas HTTP, autorização e helpers.
 - `backend/prisma/schema.prisma`: modelo relacional.
@@ -96,6 +98,7 @@ Regras atuais:
 - `admin` e `manager`: escrita em Condomínios/Técnicos, Visitas, Contratos e Relatórios conforme módulo.
 - `collaborator`: visualiza Condomínios/Técnicos, sem criar/editar/excluir.
 - `collaborator`: não vê Contratos nem Empresa no menu.
+- `collaborator`: não acessa endpoints de Empresa.
 - Backend valida escrita de Condomínios/Técnicos com role `admin` ou `manager`.
 - Backend restringe `/users` exclusivamente a `admin`.
 
@@ -132,6 +135,12 @@ Observação: endpoints de Usuários exigem JWT e role `admin`. A API nunca reto
 
 ### Dashboard
 - `GET /dashboard/summary`
+
+### Empresa
+- `GET /company`
+- `PUT /company`
+
+Observação: endpoints de Empresa exigem JWT e role `admin` ou `manager`. O sistema usa uma única configuração institucional global e retorna fallback seguro da F TEC AUTOMAÇÃO se ainda não houver registro salvo.
 
 ### Condomínios
 - `GET /condominiums`
@@ -183,8 +192,7 @@ Observação: relatórios técnicos são gerados a partir de Visitas, persistem 
 Observação: endpoints de Contratos existem no backend, com persistência em PostgreSQL/Neon, vínculo obrigatório com Condomínio e acesso restrito a `admin` e `manager`. O frontend já consome o CRUD real via `contractService` e `AppContext`. O contrato assinado usa Vercel Blob privado, metadados em `File` e download por endpoint autenticado.
 
 ## Endpoints Planejados
-- Empresa: `GET /company`, `PUT /company`.
-- Relatórios: exclusão, anexos adicionais, templates avançados e envio.
+- Relatórios: anexos adicionais, templates avançados e envio automático.
 - Contratos: geração server-side de documento/PDF e versionamento formal.
 - Uploads: anexos de Relatórios e demais categorias futuras.
 
@@ -262,8 +270,9 @@ Persistência operacional real implementada até agora:
 - contrato assinado, com conteúdo no Vercel Blob e metadados em `File`.
 - relatórios técnicos gerados a partir de Visitas, com PDF no Vercel Blob e metadados em `Report`/`File`.
 - indicadores operacionais do Dashboard via agregações do backend.
+- configuração institucional da Empresa, usada em contratos, relatórios técnicos e mensagens assistidas.
 
-Empresa ainda está modelada, mas os endpoints e a integração frontend ainda não foram concluídos. Contratos já possuem CRUD real integrado e upload/download privado de contrato assinado.
+Contratos já possuem CRUD real integrado e upload/download privado de contrato assinado.
 
 ## Uploads de Visitas
 Implementado com:
@@ -310,7 +319,8 @@ Implementado com:
 - `DELETE /reports/:id` para exclusão controlada do relatório e do PDF vinculado, sem excluir a Visita.
 
 Escopo atual:
-- usa dados temporários centralizados da F TEC AUTOMAÇÃO em `backend/src/config/company.js`;
+- usa `CompanySettings` quando houver configuração institucional salva;
+- mantém fallback seguro da F TEC AUTOMAÇÃO em `backend/src/config/company.js`;
 - inclui dados do condomínio, técnico, visita, checklist, ações executadas, problemas, melhorias, aceite técnico e relação de anexos;
 - tenta incorporar fotos JPEG/PNG da visita ao PDF;
 - permite reemissão versionada após correção da Visita;
@@ -324,6 +334,7 @@ Implementado apenas no frontend:
 - WhatsApp usa `https://wa.me/?text=...`;
 - e-mail usa `mailto:?subject=...&body=...`;
 - as mensagens incluem dados do condomínio, visita/contrato e assinatura institucional da F TEC AUTOMAÇÃO;
+- quando a configuração de Empresa estiver cadastrada, a assinatura usa o nome institucional salvo;
 - quando aplicável, o texto inclui link de download autenticado do backend;
 - não há envio automático, fila, webhook, SMTP, WhatsApp Business API ou histórico de envio.
 
@@ -371,7 +382,6 @@ Fora do escopo atual:
 - Permissões sempre devem ser validadas no backend, mesmo quando já filtradas no frontend.
 
 ## Riscos Técnicos Atuais
-- Empresa ainda não persiste via API.
 - Gestão de Usuários ainda não possui auditoria nem recuperação de senha por e-mail.
 - Envio automático de Relatórios por WhatsApp/e-mail ainda não foi implementado.
 - Uploads adicionais de Relatórios ainda não foram integrados.
@@ -385,12 +395,11 @@ Fora do escopo atual:
 - Falta observabilidade estruturada no backend.
 
 ## Próximas Etapas Técnicas
-1. Integrar Empresa ao backend com RBAC.
-2. Implementar auditoria para ações administrativas, incluindo Usuários.
-3. Implementar envio automático de Relatórios por e-mail/WhatsApp.
-4. Evoluir templates/versionamento de PDFs.
-5. Evoluir aceite técnico para assinatura eletrônica.
-6. Evoluir Dashboard com gráficos e filtros por período.
-7. Avaliar React Query para server-state.
-8. Adicionar logs estruturados e soft delete.
-9. Preparar multitenancy para SaaS.
+1. Implementar auditoria para ações administrativas, incluindo Usuários e Empresa.
+2. Implementar envio automático de Relatórios por e-mail/WhatsApp.
+3. Evoluir templates/versionamento de PDFs.
+4. Evoluir aceite técnico para assinatura eletrônica.
+5. Evoluir Dashboard com gráficos e filtros por período.
+6. Avaliar React Query para server-state.
+7. Adicionar logs estruturados e soft delete.
+8. Preparar multitenancy para SaaS.
